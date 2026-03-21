@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ChitOS — Group Join</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --green:#25d366;--green-dark:#128c4f;--green-light:#e8faf0;
+  --blue:#1877f2;--blue-light:#e8f0fe;
+  --red:#e53935;--red-light:#ffebee;
+  --amber:#f59e0b;--amber-light:#fffbeb;
+  --gray:#f5f5f5;--gray2:#eeeeee;
+  --text:#1a1a1a;--text2:#555;--text3:#999;--border:#e0e0e0;
+  --shadow:0 2px 16px rgba(0,0,0,0.10);
+}
+html,body{min-height:100%;background:#f0f2f5;font-family:'Noto Sans',sans-serif;color:var(--text);font-size:15px}
+
+.app{max-width:420px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+/* SCREEN STATES */
+.screen{display:none}
+.screen.active{display:flex;flex-direction:column;flex:1}
+
+/* ── LANG PICK ── */
+#screen-lang{align-items:center;justify-content:center;padding:32px 20px;background:#fff;min-height:100vh}
+.lang-logo{font-size:44px;margin-bottom:6px;text-align:center}
+.lang-title{font-size:22px;font-weight:800;text-align:center;margin-bottom:4px}
+.lang-subtitle{font-size:13px;color:var(--text3);text-align:center;margin-bottom:28px;line-height:1.6}
+.lang-opts{width:100%;display:flex;flex-direction:column;gap:10px}
+.lang-opt{width:100%;padding:16px 18px;background:#fff;border:2.5px solid var(--border);border-radius:16px;cursor:pointer;display:flex;align-items:center;gap:14px;font-family:'Noto Sans',sans-serif;transition:all .15s}
+.lang-opt:active,.lang-opt.sel{border-color:var(--green-dark);background:var(--green-light)}
+.lang-opt-flag{font-size:28px;flex-shrink:0}
+.lang-opt-name{font-size:16px;font-weight:800;display:block;color:var(--text)}
+.lang-opt-desc{font-size:11px;color:var(--text3);display:block;margin-top:2px}
+.lang-continue{width:100%;padding:17px;background:var(--green-dark);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:800;font-family:'Noto Sans',sans-serif;cursor:pointer;margin-top:18px;display:none}
+.lang-continue.show{display:block}
+
+/* ── JOIN FORM ── */
+#screen-join{background:#f0f2f5;min-height:100vh}
+.join-header{background:linear-gradient(135deg,var(--green-dark),#059669);color:#fff;padding:28px 20px 24px;text-align:center}
+.jh-icon{font-size:40px;margin-bottom:10px}
+.jh-foreman{font-size:13px;opacity:.8;margin-bottom:4px}
+.jh-group{font-size:22px;font-weight:800;margin-bottom:4px}
+.jh-details{font-size:13px;opacity:.85}
+
+.join-info-row{display:flex;gap:0;background:#fff;margin:14px 14px 0;border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.ji-item{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--gray2)}
+.ji-item:last-child{border-right:none}
+.ji-val{font-size:18px;font-weight:800;color:var(--green-dark)}
+.ji-label{font-size:10px;color:var(--text3);margin-top:3px;font-weight:600}
+
+.join-card{background:#fff;border-radius:16px;margin:14px;padding:20px;box-shadow:var(--shadow)}
+.join-card-title{font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{width:100%;background:#f8f8f8;border:2px solid var(--border);border-radius:12px;padding:14px;color:var(--text);font-family:'Noto Sans',sans-serif;font-size:16px;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--green-dark);background:#fff}
+.form-input.phone-input{font-size:22px;font-weight:700;letter-spacing:1px}
+.form-input.error{border-color:var(--red);background:var(--red-light)}
+
+.otp-row{display:flex;gap:10px;margin-bottom:14px}
+.otp-box{flex:1;padding:16px 8px;background:#f8f8f8;border:2.5px solid var(--border);border-radius:12px;font-size:24px;font-weight:800;text-align:center;font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .15s}
+.otp-box:focus{border-color:var(--green-dark);background:#fff}
+
+.btn-big{width:100%;padding:17px;background:var(--green-dark);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:800;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;margin-top:4px}
+.btn-big:active{background:var(--green)}
+.btn-big:disabled{background:var(--gray2);color:var(--text3);cursor:not-allowed}
+.btn-outline{width:100%;padding:14px;background:#fff;color:var(--green-dark);border:2px solid var(--green-dark);border-radius:14px;font-size:15px;font-weight:700;font-family:'Noto Sans',sans-serif;cursor:pointer;margin-top:10px}
+
+.note{font-size:12px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.6}
+.note a{color:var(--green-dark);font-weight:600;text-decoration:none}
+
+.error-msg{font-size:12px;color:var(--red);margin-top:5px;display:none}
+.error-msg.show{display:block}
+
+/* ── OTP SCREEN ── */
+.otp-hint{background:var(--blue-light);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--blue);display:flex;gap:10px;align-items:flex-start}
+.otp-hint-icon{font-size:18px;flex-shrink:0}
+.resend-row{text-align:center;margin-top:10px;font-size:13px;color:var(--text3)}
+.resend-btn{color:var(--green-dark);font-weight:700;cursor:pointer;background:none;border:none;font-size:13px;font-family:'Noto Sans',sans-serif}
+.timer{color:var(--text3)}
+
+/* ── SUCCESS SCREEN ── */
+#screen-success{background:#fff;align-items:center;justify-content:center;padding:32px 20px;text-align:center;min-height:100vh}
+.success-circle{width:100px;height:100px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:50px;margin:0 auto 20px;animation:popIn .4s ease}
+@keyframes popIn{0%{transform:scale(0.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.success-title{font-size:24px;font-weight:800;margin-bottom:8px;color:var(--green-dark)}
+.success-sub{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:24px}
+.success-card{background:var(--green-light);border:1.5px solid rgba(37,211,102,0.3);border-radius:16px;padding:18px;width:100%;margin-bottom:20px;text-align:left}
+.sc-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(37,211,102,0.2);font-size:13px}
+.sc-row:last-child{border-bottom:none}
+.sc-label{color:var(--text3);font-weight:500}
+.sc-val{font-weight:700;color:var(--green-dark)}
+.whatsapp-btn{width:100%;padding:17px;background:#25d366;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:800;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.save-note{font-size:12px;color:var(--text3);margin-top:12px;line-height:1.6}
+
+/* SLOTS PROGRESS */
+.slots-bar{margin:14px 14px 0}
+.slots-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600}
+.slots-track{height:10px;background:var(--gray2);border-radius:5px;overflow:hidden}
+.slots-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),#34d399);transition:width .5s ease}
+.slots-note{font-size:12px;color:var(--text3);margin-top:6px;text-align:center}
+
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px 0}
+.step{width:28px;height:4px;border-radius:2px;background:var(--gray2);transition:background .3s}
+.step.done{background:var(--green-dark)}
+.step.active{background:var(--green)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── SCREEN 1: LANGUAGE PICK ── -->
+  <div class="screen active" id="screen-lang">
+    <div class="lang-logo">🏦</div>
+    <div class="lang-title">ChitOS</div>
+    <div class="lang-subtitle" id="ls-sub">మీకు ఇష్టమైన భాష ఎంచుకోండి<br><span style="font-size:11px;color:#ccc">Choose your language</span></div>
+    <div class="lang-opts">
+      <button class="lang-opt" id="lopt-te" onclick="pickLang('te')">
+        <div class="lang-opt-flag">🅣</div>
+        <div><span class="lang-opt-name">తెలుగు</span><span class="lang-opt-desc">పూర్తిగా తెలుగు లో</span></div>
+      </button>
+      <button class="lang-opt" id="lopt-te-en" onclick="pickLang('te-en')">
+        <div class="lang-opt-flag">🅣🅔</div>
+        <div><span class="lang-opt-name">తెలుగు + English</span><span class="lang-opt-desc">Mixed — most popular</span></div>
+      </button>
+      <button class="lang-opt" id="lopt-en" onclick="pickLang('en')">
+        <div class="lang-opt-flag">🅔</div>
+        <div><span class="lang-opt-name">English</span><span class="lang-opt-desc">Simple English only</span></div>
+      </button>
+    </div>
+    <button class="lang-continue" id="lang-continue-btn" onclick="goToJoin()">✅ <span id="continue-text">Continue చేయి</span></button>
+  </div>
+
+  <!-- ── SCREEN 2: JOIN FORM ── -->
+  <div class="screen" id="screen-join">
+
+    <!-- Group header -->
+    <div class="join-header">
+      <div class="jh-icon">🏦</div>
+      <div class="jh-foreman" id="jh-foreman">Ramesh Kumar గారి Chit</div>
+      <div class="jh-group">Gold Group A</div>
+      <div class="jh-details" id="jh-details">₹1,000/month · 20 months · 5% commission</div>
+    </div>
+
+    <!-- Slots progress -->
+    <div class="slots-bar">
+      <div class="slots-label"><span id="slots-joined-label">17 మంది join అయ్యారు</span><span id="slots-left-label">3 slots మిగిలాయి</span></div>
+      <div class="slots-track"><div class="slots-fill" id="slots-fill" style="width:85%"></div></div>
+      <div class="slots-note" id="slots-note">⚡ త్వరగా join అవ్వండి — slots తక్కువగా ఉన్నాయి!</div>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="steps">
+      <div class="step active" id="step-1"></div>
+      <div class="step" id="step-2"></div>
+      <div class="step" id="step-3"></div>
+    </div>
+
+    <!-- STEP A: Name + Phone -->
+    <div id="form-step-a" style="padding:14px">
+
+      <div class="join-card" style="margin:0;margin-bottom:12px">
+        <div class="join-card-title">👤 <span id="your-details-title">మీ వివరాలు నమోదు చేయండి</span></div>
+
+        <div class="form-group">
+          <label class="form-label" id="name-label">మీ పూర్తి పేరు</label>
+          <input class="form-input" id="input-name" type="text" placeholder="e.g. Ravi Kumar" autocomplete="name" oninput="checkForm()">
+          <div class="error-msg" id="name-error">పేరు enter చేయండి</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:4px">
+          <label class="form-label" id="phone-label">మీ WhatsApp నంబర్</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="background:#f8f8f8;border:2px solid var(--border);border-radius:12px;padding:14px 12px;font-size:15px;font-weight:700;color:var(--text2);flex-shrink:0">🇮🇳 +91</div>
+            <input class="form-input phone-input" id="input-phone" type="tel" placeholder="98765 43210" maxlength="10" oninput="checkForm()" style="flex:1">
+          </div>
+          <div class="error-msg" id="phone-error">సరైన 10 digit నంబర్ enter చేయండి</div>
+        </div>
+
+        <div class="note" id="privacy-note">🔒 మీ నంబర్ సురక్షితంగా ఉంటుంది. Spam రాదు.</div>
+      </div>
+
+      <button class="btn-big" id="btn-send-otp" onclick="sendOTP()" disabled>
+        📲 <span id="btn-otp-text">OTP పంపండి WhatsApp కి</span>
+      </button>
+      <div class="note" id="otp-note" style="margin-top:10px">మీ WhatsApp కి ఒక OTP వస్తుంది — అది enter చేస్తే join అవుతారు</div>
+    </div>
+
+    <!-- STEP B: OTP verify -->
+    <div id="form-step-b" style="padding:14px;display:none">
+      <div class="join-card" style="margin:0">
+        <div class="join-card-title">🔐 <span id="otp-title">OTP Verify చేయండి</span></div>
+
+        <div class="otp-hint">
+          <div class="otp-hint-icon">📲</div>
+          <div id="otp-hint-text">+91 <span id="otp-phone-display">XXXXXXXXXX</span> కి WhatsApp లో OTP పంపాం. Enter చేయండి.</div>
+        </div>
+
+        <div class="otp-row">
+          <input class="otp-box" id="otp1" type="number" maxlength="1" oninput="otpMove(this,'otp2')" onfocus="this.select()">
+          <input class="otp-box" id="otp2" type="number" maxlength="1" oninput="otpMove(this,'otp3')" onfocus="this.select()">
+          <input class="otp-box" id="otp3" type="number" maxlength="1" oninput="otpMove(this,'otp4')" onfocus="this.select()">
+          <input class="otp-box" id="otp4" type="number" maxlength="1" oninput="otpMove(this,null)" onfocus="this.select()">
+        </div>
+        <div class="error-msg" id="otp-error">తప్పుడు OTP — మళ్ళీ try చేయండి</div>
+
+        <button class="btn-big" id="btn-verify-otp" onclick="verifyOTP()">
+          ✅ <span id="btn-verify-text">Verify చేయి & Join అవ్వు</span>
+        </button>
+        <div class="resend-row">
+          <span id="resend-label">OTP రాలేదా? </span>
+          <button class="resend-btn" id="resend-btn" onclick="resendOTP()" style="display:none" id="btn-resend-text">మళ్ళీ పంపు</button>
+          <span class="timer" id="timer-text">30s లో మళ్ళీ పంపవచ్చు</span>
+        </div>
+      </div>
+      <button class="btn-outline" onclick="backToForm()" id="back-btn">← వెనక్కి వెళ్ళు</button>
+    </div>
+
+  </div>
+
+  <!-- ── SCREEN 3: SUCCESS ── -->
+  <div class="screen" id="screen-success">
+    <div class="success-circle">✅</div>
+    <div class="success-title" id="success-title">మీరు Join అయ్యారు!</div>
+    <div class="success-sub" id="success-sub">
+      మీరు <strong>Gold Group A</strong> లో successfully register అయ్యారు.<br>
+      Ramesh Kumar గారు మీ చేరికను confirm చేస్తారు.
+    </div>
+
+    <div class="success-card" id="success-card">
+      <div class="sc-row"><span class="sc-label" id="sc-name-label">మీ పేరు</span><span class="sc-val" id="sc-name">—</span></div>
+      <div class="sc-row"><span class="sc-label" id="sc-phone-label">WhatsApp నంబర్</span><span class="sc-val" id="sc-phone">—</span></div>
+      <div class="sc-row"><span class="sc-label" id="sc-group-label">Group</span><span class="sc-val">Gold Group A</span></div>
+      <div class="sc-row"><span class="sc-label" id="sc-amount-label">నెల Amount</span><span class="sc-val">₹1,000</span></div>
+      <div class="sc-row"><span class="sc-label" id="sc-first-due-label">మొదటి Payment</span><span class="sc-val">April 1, 2025</span></div>
+    </div>
+
+    <button class="whatsapp-btn" onclick="saveToWhatsApp()">
+      <span style="font-size:22px">💬</span>
+      <span id="wa-save-btn-text">WhatsApp లో Save చేయండి</span>
+    </button>
+    <div class="save-note" id="save-note">మీ చెల్లింపు reminders మరియు monthly statements WhatsApp కి వస్తాయి</div>
+  </div>
+
+</div>
+
+<script>
+// ── TRANSLATIONS ───────────────────────────────────────────────
+const T = {
+  te: {
+    continue_btn: 'Continue చేయి',
+    jh_foreman: 'రమేష్ కుమార్ గారి చిట్',
+    jh_details: '₹1,000/నెల · 20 నెలలు · 5% కమీషన్',
+    slots_joined: '17 మంది join అయ్యారు',
+    slots_left: '3 slots మిగిలాయి',
+    slots_note: '⚡ త్వరగా join అవ్వండి — slots తక్కువగా ఉన్నాయి!',
+    your_details_title: '👤 మీ వివరాలు నమోదు చేయండి',
+    name_label: 'మీ పూర్తి పేరు',
+    phone_label: 'మీ WhatsApp నంబర్',
+    privacy_note: '🔒 మీ నంబర్ సురక్షితంగా ఉంటుంది. Spam రాదు.',
+    btn_otp_text: 'OTP పంపండి WhatsApp కి',
+    otp_note: 'మీ WhatsApp కి ఒక OTP వస్తుంది — అది enter చేస్తే join అవుతారు',
+    otp_title: '🔐 OTP Verify చేయండి',
+    otp_hint: 'కి WhatsApp లో OTP పంపాం. Enter చేయండి.',
+    btn_verify_text: 'Verify చేయి & Join అవ్వు',
+    resend_label: 'OTP రాలేదా? ',
+    resend_btn_text: 'మళ్ళీ పంపు',
+    timer_text: 's లో మళ్ళీ పంపవచ్చు',
+    back_btn: '← వెనక్కి వెళ్ళు',
+    name_error: 'పేరు enter చేయండి',
+    phone_error: 'సరైన 10 digit నంబర్ enter చేయండి',
+    otp_error: 'తప్పుడు OTP — మళ్ళీ try చేయండి',
+    success_title: 'మీరు Join అయ్యారు! 🎉',
+    success_sub: 'మీరు <strong>Gold Group A</strong> లో successfully register అయ్యారు.<br>రమేష్ కుమార్ గారు మీ చేరికను confirm చేస్తారు.',
+    sc_name_label: 'మీ పేరు', sc_phone_label: 'WhatsApp నంబర్',
+    sc_group_label: 'గ్రూప్', sc_amount_label: 'నెల మొత్తం', sc_first_due_label: 'మొదటి చెల్లింపు',
+    wa_save_btn: '💬 WhatsApp లో Save చేయండి',
+    save_note: 'మీ చెల్లింపు reminders మరియు నెలవారీ statements WhatsApp కి వస్తాయి',
+  },
+  'te-en': {
+    continue_btn: 'Continue చేయి',
+    jh_foreman: 'Ramesh Kumar గారి Chit',
+    jh_details: '₹1,000/month · 20 months · 5% commission',
+    slots_joined: '17 మంది join అయ్యారు',
+    slots_left: '3 slots మిగిలాయి',
+    slots_note: '⚡ త్వరగా join అవ్వండి — slots తక్కువగా ఉన్నాయి!',
+    your_details_title: '👤 మీ details enter చేయండి',
+    name_label: 'మీ పూర్తి పేరు',
+    phone_label: 'మీ WhatsApp Number',
+    privacy_note: '🔒 మీ number safe గా ఉంటుంది. Spam రాదు.',
+    btn_otp_text: 'WhatsApp కి OTP పంపు',
+    otp_note: 'మీ WhatsApp కి OTP వస్తుంది — enter చేస్తే join అవుతారు',
+    otp_title: '🔐 OTP Verify చేయండి',
+    otp_hint: 'కి WhatsApp లో OTP పంపాం. Enter చేయండి.',
+    btn_verify_text: '✅ Verify చేయి & Join అవ్వు',
+    resend_label: 'OTP రాలేదా? ',
+    resend_btn_text: 'మళ్ళీ పంపు',
+    timer_text: 's లో మళ్ళీ పంపవచ్చు',
+    back_btn: '← వెనక్కి',
+    name_error: 'పేరు enter చేయండి',
+    phone_error: 'సరైన 10 digit number enter చేయండి',
+    otp_error: 'Wrong OTP — మళ్ళీ try చేయండి',
+    success_title: 'Join అయ్యారు! 🎉',
+    success_sub: '<strong>Gold Group A</strong> లో successfully register అయ్యారు.<br>Ramesh Kumar గారు confirm చేస్తారు.',
+    sc_name_label: 'మీ పేరు', sc_phone_label: 'WhatsApp Number',
+    sc_group_label: 'Group', sc_amount_label: 'Monthly Amount', sc_first_due_label: 'First Payment',
+    wa_save_btn: '💬 WhatsApp లో Save చేయండి',
+    save_note: 'Payment reminders మరియు monthly statements WhatsApp కి వస్తాయి',
+  },
+  en: {
+    continue_btn: 'Continue',
+    jh_foreman: "Ramesh Kumar's Chit Group",
+    jh_details: '₹1,000/month · 20 months · 5% commission',
+    slots_joined: '17 members have joined',
+    slots_left: '3 slots remaining',
+    slots_note: '⚡ Join quickly — only 3 slots left!',
+    your_details_title: '👤 Enter Your Details',
+    name_label: 'Your Full Name',
+    phone_label: 'Your WhatsApp Number',
+    privacy_note: '🔒 Your number is safe. No spam.',
+    btn_otp_text: 'Send OTP on WhatsApp',
+    otp_note: 'You will get an OTP on WhatsApp — enter it to join',
+    otp_title: '🔐 Verify OTP',
+    otp_hint: '— we sent an OTP on WhatsApp. Please enter it.',
+    btn_verify_text: '✅ Verify & Join Group',
+    resend_label: "Didn't get OTP? ",
+    resend_btn_text: 'Resend',
+    timer_text: 's to resend',
+    back_btn: '← Go Back',
+    name_error: 'Please enter your name',
+    phone_error: 'Please enter a valid 10-digit number',
+    otp_error: 'Wrong OTP — please try again',
+    success_title: "You've Joined! 🎉",
+    success_sub: 'You have successfully registered in <strong>Gold Group A</strong>.<br>Ramesh Kumar will confirm your membership.',
+    sc_name_label: 'Your Name', sc_phone_label: 'WhatsApp Number',
+    sc_group_label: 'Group', sc_amount_label: 'Monthly Amount', sc_first_due_label: 'First Payment',
+    wa_save_btn: '💬 Save on WhatsApp',
+    save_note: 'Your payment reminders and monthly statements will come on WhatsApp',
+  }
+};
+
+let lang = 'te-en';
+let selectedLang = null;
+
+let currentGroup = null;
+
+async function loadGroupDetails() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupId = urlParams.get('groupId');
+  if (!groupId) return;
+
+  try {
+    const res = await fetch(`/api/v1/groups/${groupId}`);
+    const data = await res.json();
+    if (res.ok && data.data) {
+      currentGroup = data.data;
+      updateGroupUI();
+    }
+  } catch (err) {
+    console.error('Failed to fetch group details', err);
+  }
+}
+
+function updateGroupUI() {
+  if (!currentGroup) return;
+  const foremanName = currentGroup.foremen ? currentGroup.foremen.name : 'Ramesh Kumar';
+  const groupName = currentGroup.name;
+  
+  // Set UI elements
+  document.getElementById('jh-foreman').textContent = `${foremanName} గారి Chit`;
+  document.querySelector('.jh-group').textContent = groupName;
+  document.getElementById('jh-details').textContent = `₹${currentGroup.monthly_amount}/month · ${currentGroup.duration_months} months · ${currentGroup.commission_pct}% commission`;
+  
+  // Update translation template data
+  T['te'].jh_foreman = `${foremanName} గారి చిట్`;
+  T['te-en'].jh_foreman = `${foremanName} గారి Chit`;
+  T['en'].jh_foreman = `${foremanName}'s Chit Group`;
+  
+  const detailsStr = `₹${currentGroup.monthly_amount}/month · ${currentGroup.duration_months} months · ${currentGroup.commission_pct}% commission`;
+  T['te'].jh_details = `₹${currentGroup.monthly_amount}/నెల · ${currentGroup.duration_months} నెలలు · ${currentGroup.commission_pct}% కమీషన్`;
+  T['te-en'].jh_details = detailsStr;
+  T['en'].jh_details = detailsStr;
+  
+  // Refresh applied translations on the group section
+  if (selectedLang) {
+    document.getElementById('jh-foreman').textContent = T[lang].jh_foreman;
+    document.getElementById('jh-details').textContent = T[lang].jh_details;
+  }
+}
+
+function pickLang(l) {
+  selectedLang = l;
+  document.querySelectorAll('.lang-opt').forEach(o => o.classList.remove('sel'));
+  document.getElementById('lopt-'+l).classList.add('sel');
+  const btn = document.getElementById('lang-continue-btn');
+  btn.classList.add('show');
+  const labels = {te:'తెలుగు లో Continue చేయి', 'te-en':'Continue చేయి', en:'Continue'};
+  document.getElementById('continue-text').textContent = labels[l];
+  
+  // Load group details in background while user picks language
+  if (!currentGroup && window.location.search.includes('groupId')) {
+      loadGroupDetails();
+  }
+}
+
+function goToJoin() {
+  if(!selectedLang) return;
+  lang = selectedLang;
+  applyLang();
+  showScreen('screen-join');
+}
+
+function applyLang() {
+  const t = T[lang];
+  document.getElementById('jh-foreman').textContent = t.jh_foreman;
+  document.getElementById('jh-details').textContent = t.jh_details;
+  document.getElementById('slots-joined-label').textContent = t.slots_joined;
+  document.getElementById('slots-left-label').textContent = t.slots_left;
+  document.getElementById('slots-note').textContent = t.slots_note;
+  document.getElementById('your-details-title').textContent = t.your_details_title;
+  document.getElementById('name-label').textContent = t.name_label;
+  document.getElementById('phone-label').textContent = t.phone_label;
+  document.getElementById('privacy-note').textContent = t.privacy_note;
+  document.getElementById('btn-otp-text').textContent = t.btn_otp_text;
+  document.getElementById('otp-note').textContent = t.otp_note;
+  document.getElementById('otp-title').textContent = t.otp_title;
+  document.getElementById('btn-verify-text').textContent = t.btn_verify_text;
+  document.getElementById('resend-label').textContent = t.resend_label;
+  document.getElementById('back-btn').textContent = t.back_btn;
+  document.getElementById('name-error').textContent = t.name_error;
+  document.getElementById('phone-error').textContent = t.phone_error;
+  document.getElementById('otp-error').textContent = t.otp_error;
+  document.getElementById('sc-name-label').textContent = t.sc_name_label;
+  document.getElementById('sc-phone-label').textContent = t.sc_phone_label;
+  document.getElementById('sc-group-label').textContent = t.sc_group_label;
+  document.getElementById('sc-amount-label').textContent = t.sc_amount_label;
+  document.getElementById('sc-first-due-label').textContent = t.sc_first_due_label;
+  document.getElementById('save-note').textContent = t.save_note;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── FORM VALIDATION ────────────────────────────────────────────
+function checkForm() {
+  const name = document.getElementById('input-name').value.trim();
+  const phone = document.getElementById('input-phone').value.replace(/\s/g,'');
+  const valid = name.length >= 2 && /^[6-9]\d{9}$/.test(phone);
+  document.getElementById('btn-send-otp').disabled = !valid;
+}
+
+// ── OTP FLOW ───────────────────────────────────────────────────
+let timerInterval;
+
+function sendOTP() {
+  const name = document.getElementById('input-name').value.trim();
+  const phone = document.getElementById('input-phone').value.replace(/\s/g,'');
+
+  if(name.length < 2){ showErr('name-error'); return; }
+  if(!/^[6-9]\d{9}$/.test(phone)){ showErr('phone-error'); return; }
+
+  // Show OTP screen
+  document.getElementById('otp-phone-display').textContent = phone;
+  document.getElementById('otp-hint-text').innerHTML = '+91 <strong>' + phone + '</strong> ' + T[lang].otp_hint;
+  document.getElementById('form-step-a').style.display = 'none';
+  document.getElementById('form-step-b').style.display = 'block';
+  setStep(2);
+  startTimer();
+  document.getElementById('otp1').focus();
+}
+
+async function verifyOTP() {
+  const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
+  if(otp.length < 4){ showErr('otp-error'); return; }
+
+  const name = document.getElementById('input-name').value.trim();
+  const phone = document.getElementById('input-phone').value.replace(/\s/g,'');
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupId = urlParams.get('groupId');
+
+  try {
+    document.getElementById('btn-verify-text').textContent = 'Loading...';
+    const res = await fetch('/api/v1/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, otp, name, groupId })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showErr('otp-error'); document.getElementById('otp-error').textContent = data.error;
+      document.getElementById('btn-verify-text').textContent = T[lang].btn_verify_text; return;
+    }
+
+    // Show success
+    clearInterval(timerInterval);
+    document.getElementById('sc-name').textContent = name;
+    document.getElementById('sc-phone').textContent = '+91 ' + phone;
+    
+    // Dynamically show the group we just joined
+    const joinedGroupName = currentGroup ? currentGroup.name : 'Gold Group A';
+    document.getElementById('success-sub').innerHTML = `You have successfully registered in <strong>${joinedGroupName}</strong>.<br>The foreman will confirm your membership.`;
+    document.querySelector('.sc-row:nth-child(3) .sc-val').textContent = joinedGroupName;
+    if (currentGroup) {
+       document.querySelector('.sc-row:nth-child(4) .sc-val').textContent = `₹${currentGroup.monthly_amount}`;
+    }
+    
+    document.getElementById('success-title').textContent = T[lang].success_title;
+    document.getElementById('wa-save-btn-text').parentElement.innerHTML = T[lang].wa_save_btn;
+    document.getElementById('save-note').textContent = T[lang].save_note;
+    setStep(3);
+    showScreen('screen-success');
+  } catch (err) {
+    alert('Server error. Please try again.');
+    document.getElementById('btn-verify-text').textContent = T[lang].btn_verify_text;
+  }
+}
+
+function backToForm() {
+  clearInterval(timerInterval);
+  document.getElementById('form-step-a').style.display = 'block';
+  document.getElementById('form-step-b').style.display = 'none';
+  ['otp1','otp2','otp3','otp4'].forEach(id => document.getElementById(id).value = '');
+  hideErr('otp-error');
+  setStep(1);
+}
+
+function startTimer() {
+  let seconds = 30;
+  clearInterval(timerInterval);
+  document.getElementById('resend-btn').style.display = 'none';
+  document.getElementById('timer-text').style.display = 'inline';
+  document.getElementById('timer-text').textContent = seconds + T[lang].timer_text;
+  timerInterval = setInterval(() => {
+    seconds--;
+    document.getElementById('timer-text').textContent = seconds + T[lang].timer_text;
+    if(seconds <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById('timer-text').style.display = 'none';
+      document.getElementById('resend-btn').style.display = 'inline';
+      document.getElementById('resend-btn').textContent = T[lang].resend_btn_text;
+    }
+  }, 1000);
+}
+
+function resendOTP() {
+  ['otp1','otp2','otp3','otp4'].forEach(id => document.getElementById(id).value = '');
+  hideErr('otp-error');
+  startTimer();
+  document.getElementById('otp1').focus();
+}
+
+function otpMove(el, nextId) {
+  el.value = el.value.slice(-1);
+  if(el.value && nextId) document.getElementById(nextId).focus();
+  const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
+  if(otp.length === 4) {
+    setTimeout(verifyOTP, 300);
+  }
+}
+
+function saveToWhatsApp() {
+  const name = document.getElementById('sc-name').textContent;
+  const joinedGroupName = currentGroup ? currentGroup.name : 'Gold Group A';
+  const monthlyAmt = currentGroup ? currentGroup.monthly_amount : 1000;
+  const msg = encodeURIComponent(`✅ ChitOS - ${joinedGroupName}\n\nనా పేరు: ${name}\nGroup: ${joinedGroupName}\nMonthly: ₹${monthlyAmt}\n\nSuccessfully joined! Reminders will come on WhatsApp.`);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('step-'+i);
+    if(!el) return;
+    el.classList.remove('active','done');
+    if(i < n) el.classList.add('done');
+    if(i === n) el.classList.add('active');
+  });
+}
+
+function showErr(id){ document.getElementById(id).classList.add('show'); }
+function hideErr(id){ document.getElementById(id).classList.remove('show'); }
+
+// Init
+window.onload = () => {
+    if (window.location.search.includes('groupId')) {
+        loadGroupDetails();
+    }
+};
+</script>
+</body>
+</html>

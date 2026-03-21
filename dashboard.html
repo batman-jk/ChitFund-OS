@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ChitOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --green:#25d366;--green-dark:#128c4f;--green-light:#e8faf0;--green-mid:#d4f5e3;
+  --blue:#1877f2;--blue-light:#e8f0fe;--red:#e53935;--red-light:#ffebee;
+  --amber:#f59e0b;--amber-light:#fffbeb;--gray:#f5f5f5;--gray2:#eeeeee;
+  --text:#1a1a1a;--text2:#555;--text3:#999;--border:#e0e0e0;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+html,body{height:100%;background:#f0f2f5;font-family:'Noto Sans',sans-serif;color:var(--text);font-size:15px}
+.app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:#f0f2f5;position:relative;overflow:hidden}
+
+/* LANG PICKER SCREEN */
+.lang-screen{position:fixed;inset:0;background:#fff;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;max-width:480px;margin:0 auto}
+.lang-logo{font-size:48px;margin-bottom:8px}
+.lang-title{font-size:26px;font-weight:800;color:var(--text);margin-bottom:6px;letter-spacing:-0.5px}
+.lang-sub{font-size:14px;color:var(--text3);margin-bottom:36px;text-align:center;line-height:1.6}
+.lang-options{width:100%;display:flex;flex-direction:column;gap:12px}
+.lang-option{width:100%;padding:20px 20px;background:#fff;border:2.5px solid var(--border);border-radius:18px;cursor:pointer;text-align:left;font-family:'Noto Sans',sans-serif;transition:all .15s;display:flex;align-items:center;gap:16px}
+.lang-option:active,.lang-option.selected{border-color:var(--green-dark);background:var(--green-light)}
+.lang-option-flag{font-size:32px;flex-shrink:0}
+.lang-option-name{font-size:17px;font-weight:800;color:var(--text);display:block}
+.lang-option-desc{font-size:12px;color:var(--text3);margin-top:3px;display:block;line-height:1.4}
+.lang-continue{width:100%;padding:18px;background:var(--green-dark);color:#fff;border:none;border-radius:16px;font-size:17px;font-weight:800;font-family:'Noto Sans',sans-serif;cursor:pointer;margin-top:20px;display:none}
+.lang-continue.show{display:block}
+
+/* TOPBAR */
+.topbar{background:var(--green-dark);color:#fff;padding:14px 16px 12px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.topbar-logo{font-size:20px;font-weight:700}
+.topbar-sub{font-size:11px;opacity:0.75;margin-top:1px}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.topbar-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:7px 12px;border-radius:20px;font-size:12px;font-family:'Noto Sans',sans-serif;cursor:pointer;font-weight:600}
+.lang-chip{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:5px 10px;border-radius:14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;letter-spacing:0.02em}
+
+.scroll{flex:1;overflow-y:auto;padding-bottom:80px}
+.scroll::-webkit-scrollbar{display:none}
+
+/* BOTTOM NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,0.08)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;transition:background .1s;border:none;background:none;font-family:'Noto Sans',sans-serif;position:relative}
+.bnav-icon{font-size:22px;line-height:1;margin-bottom:3px;filter:grayscale(0.5) opacity(0.6)}
+.bnav-label{font-size:10px;color:var(--text3);font-weight:500}
+.bnav-item.active .bnav-icon{filter:none}
+.bnav-item.active .bnav-label{color:var(--green-dark);font-weight:700}
+.bnav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.page{display:none;animation:slideIn .18s ease}
+.page.active{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+
+.section-label{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:0.06em;padding:16px 16px 8px;text-transform:uppercase}
+.summary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 4px}
+.sum-card{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.sum-icon{font-size:28px;margin-bottom:8px;line-height:1}
+.sum-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px}
+.sum-val{font-size:26px;font-weight:700;line-height:1;letter-spacing:-0.5px}
+.sum-val.green{color:var(--green-dark)}.sum-val.red{color:var(--red)}.sum-val.amber{color:var(--amber)}.sum-val.blue{color:var(--blue)}
+.sum-sub{font-size:12px;color:var(--text3);margin-top:4px}
+
+.list-card{background:#fff;border-radius:16px;margin:0 12px 10px;box-shadow:var(--shadow);overflow:hidden}
+.list-card-header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--gray2)}
+.lch-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.lch-action{font-size:12px;color:var(--green-dark);font-weight:700;cursor:pointer;background:var(--green-light);padding:5px 12px;border-radius:20px;border:none;font-family:'Noto Sans',sans-serif}
+
+.row-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--gray2);cursor:pointer;transition:background .1s}
+.row-item:last-child{border-bottom:none}
+.row-item:active{background:var(--gray)}
+.ri-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-weight:700}
+.ri-avatar.green-bg{background:var(--green-light)}.ri-avatar.red-bg{background:var(--red-light)}.ri-avatar.amber-bg{background:var(--amber-light)}.ri-avatar.blue-bg{background:var(--blue-light)}
+.ri-info{flex:1;min-width:0}
+.ri-name{font-size:14px;font-weight:600;color:var(--text)}
+.ri-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.ri-right{text-align:right;flex-shrink:0}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:var(--green-light);color:var(--green-dark)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-amber{background:var(--amber-light);color:#b45309}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+
+.prog-bar{height:8px;background:var(--gray2);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),#34d399)}
+
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px;margin-bottom:12px}
+.action-btn{background:#fff;border:2px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .15s;font-family:'Noto Sans',sans-serif}
+.action-btn:active{background:var(--green-light);border-color:var(--green)}
+.action-btn-icon{font-size:32px;line-height:1}
+.action-btn-label{font-size:13px;font-weight:700;color:var(--text);text-align:center;line-height:1.3}
+.action-btn-sub{font-size:11px;color:var(--text3);text-align:center}
+
+.btn-big{width:100%;padding:16px;background:var(--green-dark);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.btn-big:active{background:var(--green)}
+.btn-big.outline{background:#fff;color:var(--green-dark);border:2px solid var(--green-dark)}
+.btn-small{padding:10px 20px;background:var(--green-dark);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:700;font-family:'Noto Sans',sans-serif;cursor:pointer}
+.btn-small.outline{background:#fff;color:var(--green-dark);border:2px solid var(--green-dark)}
+.btn-small.red{background:var(--red-light);color:var(--red);border:none}
+
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{width:100%;background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 14px;color:var(--text);font-family:'Noto Sans',sans-serif;font-size:15px;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--green)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.alert{border-radius:14px;padding:14px 16px;margin:0 12px 10px;display:flex;gap:12px;align-items:flex-start}
+.alert.red{background:var(--red-light);border:1px solid #ffcdd2}
+.alert.green{background:var(--green-light);border:1px solid #b2dfdb}
+.alert.amber{background:var(--amber-light);border:1px solid #fde68a}
+.alert-icon{font-size:22px;flex-shrink:0}
+.alert-text .alert-title{font-size:14px;font-weight:700}
+.alert-text .alert-sub{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
+
+.auction-big{background:linear-gradient(135deg,var(--green-dark),#059669);color:#fff;border-radius:20px;margin:0 12px 12px;padding:24px;text-align:center}
+.ab-label{font-size:11px;opacity:.75;letter-spacing:0.08em;font-weight:700}
+.ab-name{font-size:22px;font-weight:700;margin:8px 0 4px}
+.ab-amount{font-size:40px;font-weight:800;letter-spacing:-1px}
+.ab-sub{font-size:12px;opacity:.8;margin-top:6px;line-height:1.6}
+
+.toggle-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--gray2)}
+.toggle-row:last-child{border-bottom:none}
+.tr-icon{font-size:24px;flex-shrink:0}
+.tr-info{flex:1}
+.tr-title{font-size:14px;font-weight:600}
+.tr-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.toggle-switch{width:48px;height:26px;background:var(--gray2);border-radius:13px;position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0}
+.toggle-switch.on{background:var(--green)}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.toggle-switch.on::after{transform:translateX(22px)}
+
+.portal-header{background:linear-gradient(135deg,var(--green-dark),#059669);color:#fff;padding:24px 16px 20px;text-align:center}
+.ph-avatar{width:64px;height:64px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
+.ph-name{font-size:20px;font-weight:700}
+.ph-group{font-size:13px;opacity:.8;margin-top:4px}
+
+.stat-row-h{display:flex;background:#fff;margin:0 12px 10px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.srh-item{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--gray2)}
+.srh-item:last-child{border-right:none}
+.srh-val{font-size:17px;font-weight:800;color:var(--green-dark)}
+.srh-label{font-size:10px;color:var(--text3);margin-top:3px;font-weight:600;line-height:1.3}
+
+.pill-tabs{display:flex;gap:8px;padding:8px 12px;overflow-x:auto}
+.pill-tabs::-webkit-scrollbar{display:none}
+.pill{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;border:2px solid var(--border);background:#fff;color:var(--text2);font-family:'Noto Sans',sans-serif}
+.pill.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}
+
+/* LANG SETTINGS CARD */
+.lang-settings{margin:0 12px 10px;background:#fff;border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.lang-settings-title{padding:14px 16px 10px;font-size:14px;font-weight:700;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:8px}
+.lang-opt-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--gray2);cursor:pointer;transition:background .1s}
+.lang-opt-row:last-child{border-bottom:none}
+.lang-opt-row:active{background:var(--gray)}
+.lang-opt-row.active-lang{background:var(--green-light)}
+.lang-radio{width:22px;height:22px;border-radius:50%;border:2.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.lang-opt-row.active-lang .lang-radio{border-color:var(--green-dark);background:var(--green-dark)}
+.lang-radio-dot{width:10px;height:10px;border-radius:50%;background:#fff;display:none}
+.lang-opt-row.active-lang .lang-radio-dot{display:block}
+.lang-opt-flag{font-size:26px;flex-shrink:0}
+.lang-opt-info .lang-opt-name{font-size:15px;font-weight:700}
+.lang-opt-info .lang-opt-desc{font-size:12px;color:var(--text3);margin-top:2px}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 32px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:var(--gray);border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.25);max-width:90vw;text-align:center;white-space:normal}
+</style>
+</head>
+<body>
+
+<!-- LANGUAGE PICKER SCREEN -->
+<div class="lang-screen" id="lang-screen">
+  <div class="lang-logo">🏦</div>
+  <div class="lang-title">ChitOS</div>
+  <div class="lang-sub" id="lang-screen-sub">మీకు ఇష్టమైన భాష ఎంచుకోండి<br><span style="font-size:12px;color:#bbb">Choose your language</span></div>
+  <div class="lang-options">
+    <button class="lang-option" id="lopt-te" onclick="selectLang('te')">
+      <div class="lang-option-flag">🅣</div>
+      <div class="lang-option-info">
+        <span class="lang-option-name">తెలుగు</span>
+        <span class="lang-option-desc">పూర్తిగా తెలుగు లో — అన్నీ తెలుగు లో చదవండి</span>
+      </div>
+    </button>
+    <button class="lang-option" id="lopt-te-en" onclick="selectLang('te-en')">
+      <div class="lang-option-flag">🅣🅔</div>
+      <div class="lang-option-info">
+        <span class="lang-option-name">తెలుగు + English</span>
+        <span class="lang-option-desc">Telugu మాటలు + English numbers — అందరికీ easy</span>
+      </div>
+    </button>
+    <button class="lang-option" id="lopt-en" onclick="selectLang('en')">
+      <div class="lang-option-flag">🅔</div>
+      <div class="lang-option-info">
+        <span class="lang-option-name">English</span>
+        <span class="lang-option-desc">Simple English — easy words, no complicated terms</span>
+      </div>
+    </button>
+  </div>
+  <button class="lang-continue" id="lang-continue-btn" onclick="confirmLang()">✅ <span id="continue-text">Continue చేయి</span></button>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="main-app" style="display:none">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">🏦 ChitOS</div>
+      <div class="topbar-sub" id="topbar-sub" data-key="topbar_sub"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="lang-chip" id="lang-chip" onclick="goto('more')">🌐 <span id="lang-chip-label">తె+En</span></button>
+      <button class="topbar-btn" onclick="openModal('newGroup')" data-key="btn_new_group">+ కొత్త Group</button>
+    </div>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="section-label" data-key="summary_title">మీ Summary — March 2025</div>
+      <div class="summary-row">
+        <div class="sum-card"><div class="sum-icon">💰</div><div class="sum-label" data-key="earned_label">ఈ నెల సంపాదన</div><div class="sum-val green" id="dash-earned">...</div><div class="sum-sub" data-key="earned_sub">loading</div></div>
+        <div class="sum-card"><div class="sum-icon">👥</div><div class="sum-label" data-key="members_label">Total Members</div><div class="sum-val blue" id="dash-members">...</div><div class="sum-sub" data-key="members_sub" id="dash-members-sub">loading</div></div>
+        <div class="sum-card"><div class="sum-icon">✅</div><div class="sum-label" data-key="paid_label">పైసలు వచ్చాయి</div><div class="sum-val green" id="dash-paid">...</div><div class="sum-sub" data-key="paid_sub">members paid</div></div>
+        <div class="sum-card"><div class="sum-icon">⚠️</div><div class="sum-label" data-key="pending_label">ఇంకా రాలేదు</div><div class="sum-val red" id="dash-pending">...</div><div class="sum-sub" data-key="pending_sub">members pending</div></div>
+      </div>
+
+      <div class="alert red" style="margin-top:8px">
+        <div class="alert-icon">🔔</div>
+        <div class="alert-text">
+          <div class="alert-title" data-key="alert_defaulter_title">5 members పైసలు ఇవ్వలేదు</div>
+          <div class="alert-sub" data-key="alert_defaulter_sub">Suresh, Kavitha మరియు 3 మందికి reminder పంపండి</div>
+        </div>
+      </div>
+
+      <div class="section-label" data-key="quick_actions">త్వరగా చేయండి</div>
+      <div class="action-grid">
+        <div class="action-btn" onclick="goto('collections')">
+          <div class="action-btn-icon">💳</div>
+          <div class="action-btn-label" data-key="qa_payment">Payment తీసుకో</div>
+          <div class="action-btn-sub" data-key="qa_payment_sub">Member paid చేశారు</div>
+        </div>
+        <div class="action-btn" onclick="goto('auctions')">
+          <div class="action-btn-icon">🏆</div>
+          <div class="action-btn-label" data-key="qa_auction">Auction చేయి</div>
+          <div class="action-btn-sub" data-key="qa_auction_sub">ఈ నెల winner</div>
+        </div>
+        <div class="action-btn" onclick="showToast(T('toast_reminder_sent'))">
+          <div class="action-btn-icon">📲</div>
+          <div class="action-btn-label" data-key="qa_remind">Reminder పంపు</div>
+          <div class="action-btn-sub" data-key="qa_remind_sub">WhatsApp లో</div>
+        </div>
+        <div class="action-btn" onclick="goto('members')">
+          <div class="action-btn-icon">👤</div>
+          <div class="action-btn-label" data-key="qa_member">Member చూడు</div>
+          <div class="action-btn-sub" data-key="qa_member_sub">Profile & history</div>
+        </div>
+      </div>
+
+      <div class="list-card" id="active-groups-container">
+        <div class="list-card-header">
+          <div class="lch-title">📋 <span data-key="active_groups">Active Groups</span></div>
+          <button class="lch-action" onclick="goto('groups')" data-key="view_all">అన్నీ చూడు →</button>
+        </div>
+        <div id="active-groups-list">
+          <!-- Dynamically populated -->
+          <div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Loading...</div>
+        </div>
+      </div>
+
+      <div class="alert green">
+        <div class="alert-icon">🗓️</div>
+        <div class="alert-text">
+          <div class="alert-title" data-key="auction_tomorrow">Platinum Group C — Auction రేపు!</div>
+          <div class="alert-sub" data-key="auction_remind_q">20 members కి auction reminder పంపాలా?</div>
+        </div>
+      </div>
+      <div style="padding:0 12px;margin-bottom:16px;display:flex;gap:8px">
+        <button class="btn-small" onclick="showToast(T('toast_auction_reminder'))" data-key="send_reminder">📲 Reminder పంపు</button>
+        <button class="btn-small outline" onclick="goto('auctions')" data-key="do_auction">Auction చేయి</button>
+      </div>
+    </div>
+
+    <!-- GROUPS -->
+    <div class="page" id="page-groups">
+      <div class="section-label" data-key="all_groups_title">మీ అన్ని Groups</div>
+      <div class="stat-row-h">
+        <div class="srh-item"><div class="srh-val">8</div><div class="srh-label" data-key="total_groups_lbl">Total Groups</div></div>
+        <div class="srh-item"><div class="srh-val" style="color:var(--green-dark)">₹16.8L</div><div class="srh-label" data-key="corpus_lbl">Total Corpus</div></div>
+        <div class="srh-item"><div class="srh-val" style="color:var(--amber)">2</div><div class="srh-label" data-key="maturing_lbl">Maturing Soon</div></div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-header">
+          <div class="lch-title">📋 <span data-key="groups_list">Groups List</span></div>
+          <button class="lch-action" onclick="openModal('newGroup')" data-key="new_btn">+ కొత్తది</button>
+        </div>
+        <div id="all-groups-list">
+          <!-- Dynamically populated -->
+          <div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Loading...</div>
+        </div>
+      </div>
+      <div style="padding:0 12px;margin-bottom:12px">
+        <button class="btn-big" onclick="openModal('newGroup')">➕ <span data-key="open_new_group">కొత్త Group తెరవు</span></button>
+      </div>
+    </div>
+
+    <!-- COLLECTIONS -->
+    <div class="page" id="page-collections">
+      <div class="section-label" data-key="collections_title">Payment Collection</div>
+      <div class="pill-tabs">
+        <button class="pill active">Gold Group A</button>
+        <button class="pill">Silver Group B</button>
+        <button class="pill">Platinum C</button>
+      </div>
+      <div class="stat-row-h">
+        <div class="srh-item"><div class="srh-val">18</div><div class="srh-label" data-key="paid_lbl">Paid ✅</div></div>
+        <div class="srh-item"><div class="srh-val" style="color:var(--red)">2</div><div class="srh-label" data-key="pending_lbl">Pending ⏳</div></div>
+        <div class="srh-item"><div class="srh-val" style="color:var(--green-dark)">₹18,000</div><div class="srh-label" data-key="collected_lbl">Collected</div></div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-header">
+          <div class="lch-title">👥 <span data-key="members_march">Members — March</span></div>
+          <button class="lch-action" onclick="showToast(T('toast_remind_pending'))" data-key="remind_all">Remind పంపు</button>
+        </div>
+        <div class="row-item"><div class="ri-avatar green-bg">✅</div><div class="ri-info"><div class="ri-name">Ravi Kumar</div><div class="ri-sub" data-key="ravi_paid">Mar 2 · UPI · ₹1,000</div></div><span class="badge badge-green" data-key="paid_badge">Paid</span></div>
+        <div class="row-item"><div class="ri-avatar green-bg">✅</div><div class="ri-info"><div class="ri-name">Priya Sharma</div><div class="ri-sub" data-key="priya_paid">Mar 3 · Cash · ₹1,000</div></div><span class="badge badge-green" data-key="paid_badge2">Paid</span></div>
+        <div class="row-item"><div class="ri-avatar green-bg">✅</div><div class="ri-info"><div class="ri-name">Anand T.</div><div class="ri-sub" data-key="anand_paid">Mar 5 · Bank · ₹1,000</div></div><span class="badge badge-green" data-key="paid_badge3">Paid</span></div>
+        <div class="row-item" style="background:#fff8f8">
+          <div class="ri-avatar red-bg">⏰</div>
+          <div class="ri-info"><div class="ri-name">Suresh M.</div><div class="ri-sub" data-key="suresh_overdue">8 రోజులు అయింది — ₹1,000</div></div>
+          <div class="ri-right" style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn-small" onclick="showToast(T('toast_suresh_paid'))" data-key="mark_paid">💰 Paid</button>
+            <button class="btn-small red" onclick="showToast(T('toast_suresh_reminded'))" data-key="remind_btn">📲 Remind</button>
+          </div>
+        </div>
+        <div class="row-item" style="background:#fffbf0">
+          <div class="ri-avatar amber-bg">⏳</div>
+          <div class="ri-info"><div class="ri-name">Venkat R.</div><div class="ri-sub" data-key="venkat_pending">2 రోజులు అయింది — ₹1,000</div></div>
+          <div class="ri-right" style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn-small" onclick="showToast(T('toast_venkat_paid'))" data-key="mark_paid2">💰 Paid</button>
+            <button class="btn-small red" onclick="showToast(T('toast_venkat_reminded'))" data-key="remind_btn2">📲 Remind</button>
+          </div>
+        </div>
+        <div class="row-item"><div class="ri-avatar green-bg">✅</div><div class="ri-info"><div class="ri-name">Lakshmi V.</div><div class="ri-sub" data-key="lakshmi_paid">Mar 4 · UPI · ₹1,000</div></div><span class="badge badge-green" data-key="paid_badge4">Paid</span></div>
+      </div>
+    </div>
+
+    <!-- AUCTIONS -->
+    <div class="page" id="page-auctions">
+      <div class="section-label" data-key="auction_title">Auction</div>
+      <div class="auction-big">
+        <div class="ab-label" data-key="last_auction_label">LAST AUCTION · GOLD GROUP A · MONTH 8</div>
+        <div class="ab-name" data-key="winner_announce">🏆 Ravi Kumar గెలిచారు!</div>
+        <div class="ab-amount">₹17,500</div>
+        <div class="ab-sub" data-key="auction_breakdown">మీ commission: ₹1,000 ✓ | Member dividend: ₹79 each<br>20 members కి WhatsApp వెళ్ళింది ✓</div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-header">
+          <div class="lch-title">🏆 <span data-key="new_auction">కొత్త Auction చేయి</span></div>
+        </div>
+        <div style="padding:14px 16px">
+          <div class="form-group">
+            <label class="form-label" data-key="which_group">ఏ Group లో Auction?</label>
+            <select class="form-input"><option data-key="plat_month3">Platinum Group C — Month 3 (₹50,000)</option><option data-key="gold_month9">Gold Group A — Month 9 (₹20,000)</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-key="auction_type_lbl">Auction Type</label>
+            <select class="form-input"><option data-key="lowest_bid">Lowest bid (వేలం)</option><option data-key="lottery">Lottery (లాటరీ)</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-key="winner_name_lbl">Winner పేరు</label>
+            <select class="form-input"><option data-key="select_member">Select member...</option><option>Suresh M.</option><option>Kavitha R.</option><option>Arjun P.</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-key="bid_amount_lbl">Winner Bid Amount (₹)</label>
+            <input class="form-input" type="number" placeholder="e.g. 47000" style="font-size:20px;font-weight:700">
+          </div>
+          <div class="alert green" style="margin:0 0 14px">
+            <div class="alert-icon">🧮</div>
+            <div class="alert-text">
+              <div class="alert-title" data-key="auto_calc_title">Auto Calculate అవుతుంది</div>
+              <div class="alert-sub" data-key="auto_calc_sub">Bid enter చేయగానే commission, dividend అన్నీ automatic</div>
+            </div>
+          </div>
+          <button class="btn-big" onclick="showToast(T('toast_auction_saved'))" data-key="save_auction_btn">🏆 <span data-key="save_auction_text">Auction Save + WhatsApp పంపు</span></button>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-header"><div class="lch-title">📊 <span data-key="prized_title">Prize తీసుకున్నారు</span></div></div>
+        <div class="row-item"><div class="ri-avatar green-bg">🏅</div><div class="ri-info"><div class="ri-name">Priya Sharma</div><div class="ri-sub" data-key="priya_won">Month 2 · ₹18,200 తీసుకున్నారు</div></div><span class="badge badge-green" data-key="done_badge">Done ✓</span></div>
+        <div class="row-item"><div class="ri-avatar green-bg">🏅</div><div class="ri-info"><div class="ri-name">Anand T.</div><div class="ri-sub" data-key="anand_won">Month 5 · ₹17,800 తీసుకున్నారు</div></div><span class="badge badge-green" data-key="done_badge2">Done ✓</span></div>
+        <div class="row-item"><div class="ri-avatar green-bg">🏅</div><div class="ri-info"><div class="ri-name">Ravi Kumar</div><div class="ri-sub" data-key="ravi_won">Month 8 · ₹17,500 తీసుకున్నారు</div></div><span class="badge badge-green" data-key="done_badge3">Done ✓</span></div>
+        <div class="row-item"><div class="ri-avatar amber-bg">⏳</div><div class="ri-info"><div class="ri-name">Suresh M.</div><div class="ri-sub" data-key="suresh_waiting">ఇంకా prize తీసుకోలేదు</div></div><span class="badge badge-amber" data-key="waiting_badge">Waiting</span></div>
+        <div class="row-item"><div class="ri-avatar amber-bg">⏳</div><div class="ri-info"><div class="ri-name">Kavitha R.</div><div class="ri-sub" data-key="kavitha_waiting">ఇంకా prize తీసుకోలేదు</div></div><span class="badge badge-amber" data-key="waiting_badge2">Waiting</span></div>
+      </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div class="page" id="page-members">
+      <div class="section-label" data-key="members_title">Members</div>
+      <div class="stat-row-h">
+        <div class="srh-item"><div class="srh-val">160</div><div class="srh-label" data-key="total_lbl">Total</div></div>
+        <div class="srh-item"><div class="srh-val" style="color:var(--green-dark)">134</div><div class="srh-label" data-key="reliable_lbl">⭐ Reliable</div></div>
+        <div class="srh-item"><div class="srh-val" style="color:var(--red)">5</div><div class="srh-label" data-key="defaulters_lbl">⚠️ Late</div></div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-header">
+          <div class="lch-title">👥 <span data-key="member_list">Member List</span></div>
+          <button class="lch-action" onclick="openModal('addMember')" data-key="add_new">+ కొత్తవారు</button>
+        </div>
+        <div class="row-item" onclick="goto('portal')"><div class="ri-avatar green-bg" style="font-size:20px;font-weight:800;color:var(--green-dark)">R</div><div class="ri-info"><div class="ri-name">Ravi Kumar ⭐⭐⭐⭐⭐</div><div class="ri-sub" data-key="ravi_detail">Gold A · ₹8,000 paid · Always on time</div></div><span class="badge badge-green" data-key="good_badge">Good</span></div>
+        <div class="row-item" onclick="goto('portal')"><div class="ri-avatar blue-bg" style="font-size:20px;font-weight:800;color:var(--blue)">P</div><div class="ri-info"><div class="ri-name">Priya Sharma ⭐⭐⭐⭐⭐</div><div class="ri-sub" data-key="priya_detail">Gold A + Silver B · Always on time</div></div><span class="badge badge-green" data-key="good_badge2">Good</span></div>
+        <div class="row-item" style="background:#fff8f8" onclick="goto('portal')"><div class="ri-avatar red-bg" style="font-size:20px;font-weight:800;color:var(--red)">S</div><div class="ri-info"><div class="ri-name">Suresh M. ⭐⭐⭐</div><div class="ri-sub" data-key="suresh_detail">Gold A · 8 days overdue · ₹1,000</div></div><span class="badge badge-red" data-key="late_badge">Late!</span></div>
+        <div class="row-item" style="background:#fff8f8" onclick="goto('portal')"><div class="ri-avatar red-bg" style="font-size:20px;font-weight:800;color:var(--red)">K</div><div class="ri-info"><div class="ri-name">Kavitha R. ⭐⭐</div><div class="ri-sub" data-key="kavitha_detail">Platinum C · 5 days overdue</div></div><span class="badge badge-red" data-key="late_badge2">Late!</span></div>
+        <div class="row-item" onclick="goto('portal')"><div class="ri-avatar green-bg" style="font-size:20px;font-weight:800;color:var(--green-dark)">A</div><div class="ri-info"><div class="ri-name">Anand T. ⭐⭐⭐⭐⭐</div><div class="ri-sub" data-key="anand_detail">Gold A + Diamond D · Always on time</div></div><span class="badge badge-green" data-key="good_badge3">Good</span></div>
+      </div>
+      <div style="padding:0 12px;margin-bottom:12px">
+        <button class="btn-big" onclick="openModal('addMember')">➕ <span data-key="add_member_btn">కొత్త Member చేర్చు</span></button>
+      </div>
+    </div>
+
+    <!-- PORTAL -->
+    <div class="page" id="page-portal">
+      <div class="portal-header">
+        <div class="ph-avatar">👤</div>
+        <div class="ph-name">Ravi Kumar</div>
+        <div class="ph-group" data-key="portal_group_sub">Gold Group A · Member from Jan 2024</div>
+      </div>
+      <div class="section-label" data-key="ravi_summary">Ravi వారి Summary</div>
+      <div class="summary-row">
+        <div class="sum-card"><div class="sum-icon">💳</div><div class="sum-label" data-key="total_paid_lbl">Total Paid</div><div class="sum-val green">₹8,000</div><div class="sum-sub" data-key="eight_months">8 months</div></div>
+        <div class="sum-card"><div class="sum-icon">🏆</div><div class="sum-label" data-key="prize_lbl">Prize తీసుకున్నారు</div><div class="sum-val blue">₹17,500</div><div class="sum-sub" data-key="month8">Month 8 లో</div></div>
+        <div class="sum-card"><div class="sum-icon">🎁</div><div class="sum-label" data-key="dividend_lbl">Total Dividend</div><div class="sum-val green">₹632</div><div class="sum-sub" data-key="eight_mo">8 months లో</div></div>
+        <div class="sum-card"><div class="sum-icon">📅</div><div class="sum-label" data-key="months_left_lbl">మిగిలిన Months</div><div class="sum-val amber">12</div><div class="sum-sub" data-key="ends_jan">ends Jan 2026</div></div>
+      </div>
+      <div style="padding:0 12px 4px">
+        <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow)">
+          <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px" data-key="progress_title">Group Progress</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:8px"><span data-key="month_8_of_20">Month 8 of 20</span><span>40%</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:40%"></div></div>
+          <div style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center" data-key="next_due">Next payment due: March 25, 2025</div>
+        </div>
+      </div>
+      <div class="list-card" style="margin-top:10px">
+        <div class="list-card-header"><div class="lch-title">📜 <span data-key="payment_history">Payment History</span></div></div>
+        <div class="row-item"><div class="ri-avatar green-bg">✅</div><div class="ri-info"><div class="ri-name" data-key="mar_2025">March 2025</div><div class="ri-sub" data-key="mar_detail">Paid ₹1,000 · Dividend ₹79</div></div><span class="badge badge-green" data-key="paid_b">Paid</span></div>
+        <div class="row-item"><div class="ri-avatar green-bg">🏆</div><div class="ri-info"><div class="ri-name" data-key="feb_2025">February 2025</div><div class="ri-sub" data-key="feb_detail">Paid ₹1,000 · Won Prize ₹17,500!</div></div><span class="badge badge-blue" data-key="won_b">Won!</span></div>
+        <div class="row-item"><div class="ri-avatar green-bg">✅</div><div class="ri-info"><div class="ri-name" data-key="jan_2025">January 2025</div><div class="ri-sub" data-key="jan_detail">Paid ₹1,000 · Dividend ₹84</div></div><span class="badge badge-green" data-key="paid_b2">Paid</span></div>
+      </div>
+      <div style="padding:0 12px;margin-bottom:8px">
+        <button class="btn-big" onclick="showToast(T('toast_statement_sent'))" data-key="send_whatsapp_btn">📲 <span data-key="send_whatsapp_text">WhatsApp కి పంపు</span></button>
+      </div>
+      <div style="padding:0 12px;margin-bottom:20px">
+        <button class="btn-big outline" onclick="showToast(T('toast_pdf_download'))" data-key="download_pdf_btn">📄 <span data-key="download_pdf_text">Passbook Download</span></button>
+      </div>
+    </div>
+
+    <!-- MORE -->
+    <div class="page" id="page-more">
+      <div class="section-label" data-key="more_title">మరిన్ని Options</div>
+
+      <!-- LANGUAGE SETTINGS -->
+      <div class="lang-settings">
+        <div class="lang-settings-title">🌐 <span data-key="language_setting">భాష మార్చు / Change Language</span></div>
+        <div class="lang-opt-row" id="lang-row-te" onclick="changeLang('te')">
+          <div class="lang-radio"><div class="lang-radio-dot"></div></div>
+          <div class="lang-opt-flag">🅣</div>
+          <div class="lang-opt-info"><div class="lang-opt-name">తెలుగు</div><div class="lang-opt-desc">పూర్తిగా తెలుగు లో</div></div>
+        </div>
+        <div class="lang-opt-row" id="lang-row-te-en" onclick="changeLang('te-en')">
+          <div class="lang-radio"><div class="lang-radio-dot"></div></div>
+          <div class="lang-opt-flag">🅣🅔</div>
+          <div class="lang-opt-info"><div class="lang-opt-name">తెలుగు + English</div><div class="lang-opt-desc">Mixed — most popular</div></div>
+        </div>
+        <div class="lang-opt-row" id="lang-row-en" onclick="changeLang('en')">
+          <div class="lang-radio"><div class="lang-radio-dot"></div></div>
+          <div class="lang-opt-flag">🅔</div>
+          <div class="lang-opt-info"><div class="lang-opt-name">English</div><div class="lang-opt-desc">Simple English only</div></div>
+        </div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-card-header"><div class="lch-title">📲 <span data-key="whatsapp_auto">WhatsApp Automation</span></div></div>
+        <div class="toggle-row"><div class="tr-icon">💳</div><div class="tr-info"><div class="tr-title" data-key="wa_reminder">Payment Reminder</div><div class="tr-sub" data-key="wa_reminder_sub">Due date కి 3 రోజుల ముందు</div></div><button class="toggle-switch on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="toggle-row"><div class="tr-icon">✅</div><div class="tr-info"><div class="tr-title" data-key="wa_receipt">Payment Receipt</div><div class="tr-sub" data-key="wa_receipt_sub">Paid అయినప్పుడు instant</div></div><button class="toggle-switch on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="toggle-row"><div class="tr-icon">🏆</div><div class="tr-info"><div class="tr-title" data-key="wa_auction">Auction Result</div><div class="tr-sub" data-key="wa_auction_sub">Winner announce అవ్వగానే</div></div><button class="toggle-switch on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="toggle-row"><div class="tr-icon">⚠️</div><div class="tr-info"><div class="tr-title" data-key="wa_defaulter">Defaulter Reminder</div><div class="tr-sub" data-key="wa_defaulter_sub">5వ రోజు మరియు 10వ రోజు</div></div><button class="toggle-switch on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="toggle-row"><div class="tr-icon">🎯</div><div class="tr-info"><div class="tr-title" data-key="wa_renewal">Renewal Nudge</div><div class="tr-sub" data-key="wa_renewal_sub">2 months ముందు alert</div></div><button class="toggle-switch" onclick="this.classList.toggle('on')"></button></div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-card-header"><div class="lch-title">📊 <span data-key="reports_compliance">Reports & Compliance</span></div></div>
+        <div class="row-item" onclick="showToast(T('toast_report'))"><div class="ri-avatar green-bg">📊</div><div class="ri-info"><div class="ri-name" data-key="monthly_report">Monthly Report</div><div class="ri-sub" data-key="monthly_report_sub">March 2025 commission & collections</div></div><span style="font-size:18px">›</span></div>
+        <div class="row-item" onclick="showToast(T('toast_gst'))"><div class="ri-avatar blue-bg">🧾</div><div class="ri-info"><div class="ri-name" data-key="gst_invoice">GST Invoice</div><div class="ri-sub" data-key="gst_sub">Commission పై 18% GST — ₹1,512</div></div><span style="font-size:18px">›</span></div>
+        <div class="row-item" onclick="showToast(T('toast_ledger'))"><div class="ri-avatar amber-bg">📋</div><div class="ri-info"><div class="ri-name" data-key="subscriber_ledger">Subscriber Ledger</div><div class="ri-sub" data-key="ledger_sub">Registrar filing — Due Apr 15</div></div><span style="font-size:18px;color:var(--amber)">!</span></div>
+        <div class="row-item" onclick="showToast(T('toast_docs'))"><div class="ri-avatar green-bg">📁</div><div class="ri-info"><div class="ri-name" data-key="doc_vault">Document Vault</div><div class="ri-sub" data-key="doc_vault_sub">Agreements, KYC, certificates</div></div><span style="font-size:18px">›</span></div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-card-header"><div class="lch-title">⚙️ <span data-key="account">Account</span></div></div>
+        <div class="row-item"><div class="ri-avatar green-bg">👤</div><div class="ri-info"><div class="ri-name">Ramesh Kumar</div><div class="ri-sub" data-key="account_sub">Foreman · 8 groups · ₹3,992/month</div></div><span style="font-size:18px">›</span></div>
+        <div class="row-item" onclick="showToast('📞 Support: 1800-XXX-XXXX')"><div class="ri-avatar blue-bg">📞</div><div class="ri-info"><div class="ri-name" data-key="help_support">Help & Support</div><div class="ri-sub" data-key="support_sub">Telugu లో support available</div></div><span style="font-size:18px">›</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="bnav-item active" id="bnav-home" onclick="goto('home')"><div class="bnav-icon">🏠</div><div class="bnav-label" data-key="nav_home">Home</div></button>
+    <button class="bnav-item" id="bnav-groups" onclick="goto('groups')"><div class="bnav-icon">📋</div><div class="bnav-label" data-key="nav_groups">Groups</div></button>
+    <button class="bnav-item" id="bnav-collections" onclick="goto('collections')" style="position:relative"><div class="bnav-icon">💳</div><div class="bnav-label" data-key="nav_collections">Collections</div><div class="bnav-badge">5</div></button>
+    <button class="bnav-item" id="bnav-members" onclick="goto('members')"><div class="bnav-icon">👥</div><div class="bnav-label" data-key="nav_members">Members</div></button>
+    <button class="bnav-item" id="bnav-more" onclick="goto('more')"><div class="bnav-icon">☰</div><div class="bnav-label" data-key="nav_more">More</div></button>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-newGroup">
+  <div class="modal">
+    <div class="modal-title"><span data-key="modal_new_group_title">కొత్త Chit Group</span> <button class="modal-close" onclick="closeModal('newGroup')">✕</button></div>
+    <div class="form-group"><label class="form-label" data-key="group_name_lbl">Group పేరు ఏమి పెడతారు?</label><input class="form-input" id="new-group-name" placeholder="e.g. Diamond Group I"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" data-key="how_many_members">Members ఎంత మంది?</label><input class="form-input" id="new-group-members" type="number" placeholder="20"></div>
+      <div class="form-group"><label class="form-label" data-key="monthly_amount_lbl">నెల Amount (₹)</label><input class="form-input" id="new-group-amount" type="number" placeholder="10000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" data-key="duration_lbl">Duration (months)</label><input class="form-input" id="new-group-duration" type="number" placeholder="20"></div>
+      <div class="form-group"><label class="form-label" data-key="commission_lbl">Commission (%)</label><input class="form-input" type="number" placeholder="5" value="5"></div>
+    </div>
+    <div class="form-group"><label class="form-label" data-key="auction_type_modal">Auction Type</label>
+      <select class="form-input"><option data-key="vela">వేలం (Lowest bid)</option><option data-key="lottery2">లాటరీ (Lottery)</option></select>
+    </div>
+    <div class="alert green" style="margin:0 0 14px">
+      <div class="alert-icon">💡</div>
+      <div class="alert-text"><div class="alert-title" data-key="plan_add_title">మీ plan కి ₹499 add అవుతుంది</div><div class="alert-sub" data-key="plan_add_sub">ఈ group మీ monthly plan కి automatically add అవుతుంది</div></div>
+    </div>
+    <button class="btn-big" id="btn-create-group" onclick="createGroup()" data-key="create_group_btn">✅ <span data-key="create_group_text">Group తెరవు</span></button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-addMember">
+  <div class="modal">
+    <div class="modal-title"><span data-key="modal_add_member_title">కొత్త Member చేర్చు</span> <button class="modal-close" onclick="closeModal('addMember')">✕</button></div>
+    <div class="form-group"><label class="form-label" data-key="full_name_lbl">పేరు (Full Name)</label><input class="form-input" placeholder="Member పేరు"></div>
+    <div class="form-group"><label class="form-label" data-key="phone_lbl">Phone Number</label><input class="form-input" type="tel" placeholder="98765 43210" style="font-size:18px;font-weight:600"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Aadhaar</label><input class="form-input" placeholder="XXXX XXXX XXXX"></div>
+      <div class="form-group"><label class="form-label" data-key="pan_lbl">PAN (optional)</label><input class="form-input" placeholder="ABCDE1234F"></div>
+    </div>
+    <div class="form-group"><label class="form-label" data-key="assign_group_lbl">ఏ Group లో చేర్చాలి?</label>
+      <select class="form-input"><option data-key="plat_slots">Platinum Group C (3 slots open)</option><option data-key="new_group_opt">కొత్త group లో</option></select>
+    </div>
+    <button class="btn-big" onclick="closeModal('addMember');showToast(T('toast_member_added'))" data-key="add_member_modal_btn">✅ <span data-key="add_member_modal_text">Member చేర్చు + WhatsApp పంపు</span></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── TRANSLATIONS ───────────────────────────────────────────────
+const LANGS = {
+
+  // ── FULL TELUGU ──────────────────────────────────────────────
+  te: {
+    lang_chip: 'తెలుగు',
+    topbar_sub: 'రమేష్ గారి చిట్ మేనేజర్',
+    btn_new_group: '+ కొత్త గ్రూప్',
+    summary_title: 'మీ సారాంశం — మార్చి 2025',
+    earned_label: 'ఈ నెల సంపాదన', earned_sub: '8 గ్రూపుల నుండి',
+    members_label: 'మొత్తం సభ్యులు', members_sub: '8 గ్రూపులలో',
+    paid_label: 'పైసలు వచ్చాయి', paid_sub: 'సభ్యులు చెల్లించారు',
+    pending_label: 'ఇంకా రాలేదు', pending_sub: 'సభ్యులు పెండింగ్',
+    alert_defaulter_title: '5 సభ్యులు పైసలు ఇవ్వలేదు',
+    alert_defaulter_sub: 'సురేష్, కావిత మరియు 3 మందికి రిమైండర్ పంపండి',
+    quick_actions: 'త్వరగా చేయండి',
+    qa_payment: 'చెల్లింపు తీసుకో', qa_payment_sub: 'సభ్యుడు చెల్లించారు',
+    qa_auction: 'వేలం చేయి', qa_auction_sub: 'ఈ నెల విజేత',
+    qa_remind: 'రిమైండర్ పంపు', qa_remind_sub: 'వాట్సాప్ లో',
+    qa_member: 'సభ్యుడు చూడు', qa_member_sub: 'ప్రొఫైల్ & చరిత్ర',
+    active_groups: 'చురుకైన గ్రూపులు', view_all: 'అన్నీ చూడు →',
+    group_a_sub: '20 సభ్యులు · ₹20,000/నెల',
+    group_b_sub: '20 సభ్యులు · ₹30,000/నెల',
+    group_c_sub: '17/20 సభ్యులు · ₹50,000/నెల',
+    month_8: 'నెల 8', month_12: 'నెల 12',
+    slots_open: '3 స్లాట్స్!', filling: 'నింపుతున్నారు',
+    auction_tomorrow: 'ప్లాటినం గ్రూప్ C — వేలం రేపు!',
+    auction_remind_q: '20 సభ్యులకు వేలం రిమైండర్ పంపాలా?',
+    send_reminder: '📲 రిమైండర్ పంపు', do_auction: 'వేలం చేయి',
+    all_groups_title: 'మీ అన్ని గ్రూపులు',
+    total_groups_lbl: 'మొత్తం గ్రూపులు', corpus_lbl: 'మొత్తం నిధి', maturing_lbl: 'త్వరలో ముగుస్తుంది',
+    groups_list: 'గ్రూపుల జాబితా', new_btn: '+ కొత్తది',
+    gold_detail: '20 సభ్యులు · ₹20,000/నెల · 5% కమీషన్',
+    silver_detail: '20 సభ్యులు · ₹30,000/నెల · 5% కమీషన్',
+    plat_detail: '17/20 సభ్యులు · ₹50,000/నెల',
+    diamond_detail: '20 సభ్యులు · ₹25,000/నెల · నెల 15/20',
+    emerald_detail: '20 సభ్యులు · ₹15,000/నెల · నెల 18/20',
+    sapphire_detail: '20 సభ్యులు · ₹20,000/నెల · నెల 19/20',
+    per_month: 'నెలకు', per_month2: 'నెలకు', per_month3: 'నెలకు',
+    filling2: 'నింపుతున్నారు', slots3: '3 స్లాట్స్',
+    ending: 'ముగుస్తుంది!', two_months: '2 నెలలు',
+    last_month: 'చివరి!', one_month: '1 నెల',
+    open_new_group: 'కొత్త గ్రూప్ తెరవు',
+    collections_title: 'చెల్లింపు సేకరణ',
+    paid_lbl: 'చెల్లించారు ✅', pending_lbl: 'పెండింగ్ ⏳', collected_lbl: 'వసూలు',
+    members_march: 'సభ్యులు — మార్చి', remind_all: 'రిమైండర్ పంపు',
+    ravi_paid: 'మార్చి 2 · UPI · ₹1,000',
+    priya_paid: 'మార్చి 3 · నగదు · ₹1,000',
+    anand_paid: 'మార్చి 5 · బ్యాంక్ · ₹1,000',
+    suresh_overdue: '8 రోజులు అయింది — ₹1,000',
+    venkat_pending: '2 రోజులు అయింది — ₹1,000',
+    lakshmi_paid: 'మార్చి 4 · UPI · ₹1,000',
+    paid_badge: 'చెల్లించారు', paid_badge2: 'చెల్లించారు', paid_badge3: 'చెల్లించారు', paid_badge4: 'చెల్లించారు',
+    mark_paid: '💰 చెల్లించారు', remind_btn: '📲 గుర్తుచేయి',
+    mark_paid2: '💰 చెల్లించారు', remind_btn2: '📲 గుర్తుచేయి',
+    auction_title: 'వేలం',
+    last_auction_label: 'చివరి వేలం · గోల్డ్ గ్రూప్ A · నెల 8',
+    winner_announce: '🏆 రవి కుమార్ గెలిచారు!',
+    auction_breakdown: 'మీ కమీషన్: ₹1,000 ✓ | సభ్యుల డివిడెండ్: ₹79 ఒక్కొక్కరికి\n20 సభ్యులకు వాట్సాప్ వెళ్ళింది ✓',
+    new_auction: 'కొత్త వేలం చేయి',
+    which_group: 'ఏ గ్రూప్ లో వేలం?',
+    plat_month3: 'ప్లాటినం గ్రూప్ C — నెల 3 (₹50,000)',
+    gold_month9: 'గోల్డ్ గ్రూప్ A — నెల 9 (₹20,000)',
+    auction_type_lbl: 'వేలం రకం',
+    lowest_bid: 'తక్కువ బిడ్ (వేలం)', lottery: 'లాటరీ',
+    winner_name_lbl: 'విజేత పేరు', select_member: 'సభ్యుడు ఎంచుకోండి...',
+    bid_amount_lbl: 'విజేత బిడ్ మొత్తం (₹)',
+    auto_calc_title: 'స్వయంచాలకంగా లెక్కించబడుతుంది',
+    auto_calc_sub: 'బిడ్ enter చేయగానే కమీషన్, డివిడెండ్ అన్నీ automatic',
+    save_auction_btn: '🏆', save_auction_text: 'వేలం సేవ్ చేయి + వాట్సాప్ పంపు',
+    prized_title: 'బహుమతి తీసుకున్నారు',
+    priya_won: 'నెల 2 · ₹18,200 తీసుకున్నారు',
+    anand_won: 'నెల 5 · ₹17,800 తీసుకున్నారు',
+    ravi_won: 'నెల 8 · ₹17,500 తీసుకున్నారు',
+    suresh_waiting: 'ఇంకా బహుమతి తీసుకోలేదు',
+    kavitha_waiting: 'ఇంకా బహుమతి తీసుకోలేదు',
+    done_badge: 'అయింది ✓', done_badge2: 'అయింది ✓', done_badge3: 'అయింది ✓',
+    waiting_badge: 'వేచి ఉంది', waiting_badge2: 'వేచి ఉంది',
+    members_title: 'సభ్యులు',
+    total_lbl: 'మొత్తం', reliable_lbl: '⭐ నమ్మకమైనవారు', defaulters_lbl: '⚠️ ఆలస్యం',
+    member_list: 'సభ్యుల జాబితా', add_new: '+ కొత్తవారు',
+    ravi_detail: 'గోల్డ్ A · ₹8,000 చెల్లించారు · ఎప్పుడూ సమయానికి',
+    priya_detail: 'గోల్డ్ A + సిల్వర్ B · ఎప్పుడూ సమయానికి',
+    suresh_detail: 'గోల్డ్ A · 8 రోజులు ఆలస్యం · ₹1,000',
+    kavitha_detail: 'ప్లాటినం C · 5 రోజులు ఆలస్యం',
+    anand_detail: 'గోల్డ్ A + డైమండ్ D · ఎప్పుడూ సమయానికి',
+    good_badge: 'మంచిది', good_badge2: 'మంచిది', good_badge3: 'మంచిది',
+    late_badge: 'ఆలస్యం!', late_badge2: 'ఆలస్యం!',
+    add_member_btn: 'కొత్త సభ్యుడు చేర్చు',
+    portal_group_sub: 'గోల్డ్ గ్రూప్ A · జన 2024 నుండి సభ్యుడు',
+    ravi_summary: 'రవి గారి సారాంశం',
+    total_paid_lbl: 'మొత్తం చెల్లించారు', eight_months: '8 నెలలు',
+    prize_lbl: 'బహుమతి తీసుకున్నారు', month8: 'నెల 8 లో',
+    dividend_lbl: 'మొత్తం డివిడెండ్', eight_mo: '8 నెలలలో',
+    months_left_lbl: 'మిగిలిన నెలలు', ends_jan: 'జన 2026 లో ముగుస్తుంది',
+    progress_title: 'గ్రూప్ పురోగతి',
+    month_8_of_20: 'నెల 8 / 20', next_due: 'తదుపరి చెల్లింపు: మార్చి 25, 2025',
+    payment_history: 'చెల్లింపు చరిత్ర',
+    mar_2025: 'మార్చి 2025', mar_detail: 'చెల్లించారు ₹1,000 · డివిడెండ్ ₹79',
+    feb_2025: 'ఫిబ్రవరి 2025', feb_detail: 'చెల్లించారు ₹1,000 · బహుమతి గెలిచారు ₹17,500!',
+    jan_2025: 'జనవరి 2025', jan_detail: 'చెల్లించారు ₹1,000 · డివిడెండ్ ₹84',
+    paid_b: 'చెల్లించారు', paid_b2: 'చెల్లించారు', won_b: 'గెలిచారు!',
+    send_whatsapp_btn: '📲', send_whatsapp_text: 'వాట్సాప్ కి పంపు',
+    download_pdf_btn: '📄', download_pdf_text: 'పాస్‌బుక్ డౌన్‌లోడ్',
+    more_title: 'మరిన్ని ఎంపికలు',
+    language_setting: 'భాష మార్చు',
+    whatsapp_auto: 'వాట్సాప్ స్వయంచాలక',
+    wa_reminder: 'చెల్లింపు రిమైండర్', wa_reminder_sub: 'గడువు కి 3 రోజుల ముందు',
+    wa_receipt: 'చెల్లింపు రసీదు', wa_receipt_sub: 'చెల్లించినప్పుడు వెంటనే',
+    wa_auction: 'వేలం ఫలితం', wa_auction_sub: 'విజేత ప్రకటన అయిన వెంటనే',
+    wa_defaulter: 'ఆలస్య రిమైండర్', wa_defaulter_sub: '5వ మరియు 10వ రోజు',
+    wa_renewal: 'పునరుద్ధరణ అలెర్ట్', wa_renewal_sub: '2 నెలల ముందు',
+    reports_compliance: 'నివేదికలు & నిబంధనలు',
+    monthly_report: 'నెలవారీ నివేదిక', monthly_report_sub: 'మార్చి 2025 కమీషన్ & సేకరణలు',
+    gst_invoice: 'GST ఇన్వాయిస్', gst_sub: 'కమీషన్ పై 18% GST — ₹1,512',
+    subscriber_ledger: 'చందాదారుల లెడ్జర్', ledger_sub: 'రిజిస్ట్రార్ ఫైలింగ్ — ఏప్రిల్ 15',
+    doc_vault: 'పత్రాల వాల్ట్', doc_vault_sub: 'ఒప్పందాలు, KYC, సర్టిఫికేట్లు',
+    account: 'ఖాతా', account_sub: 'ఫోర్‌మన్ · 8 గ్రూపులు · ₹3,992/నెల',
+    help_support: 'సహాయం & మద్దతు', support_sub: 'తెలుగులో మద్దతు అందుబాటులో',
+    nav_home: 'హోమ్', nav_groups: 'గ్రూపులు', nav_collections: 'చెల్లింపులు', nav_members: 'సభ్యులు', nav_more: 'మరిన్ని',
+    modal_new_group_title: 'కొత్త చిట్ గ్రూప్',
+    group_name_lbl: 'గ్రూప్ పేరు ఏమి పెడతారు?',
+    how_many_members: 'సభ్యులు ఎంత మంది?', monthly_amount_lbl: 'నెల మొత్తం (₹)',
+    duration_lbl: 'వ్యవధి (నెలలు)', commission_lbl: 'కమీషన్ (%)',
+    auction_type_modal: 'వేలం రకం', vela: 'వేలం (తక్కువ బిడ్)', lottery2: 'లాటరీ',
+    plan_add_title: 'మీ ప్లాన్ కి ₹499 జోడించబడుతుంది',
+    plan_add_sub: 'ఈ గ్రూప్ మీ నెలవారీ ప్లాన్ కి automatically జోడించబడుతుంది',
+    create_group_btn: '✅', create_group_text: 'గ్రూప్ తెరవు',
+    modal_add_member_title: 'కొత్త సభ్యుడు చేర్చు',
+    full_name_lbl: 'పేరు (పూర్తి పేరు)', phone_lbl: 'ఫోన్ నంబర్',
+    pan_lbl: 'PAN (ఐచ్ఛికం)', assign_group_lbl: 'ఏ గ్రూప్ లో చేర్చాలి?',
+    plat_slots: 'ప్లాటినం గ్రూప్ C (3 స్లాట్స్ ఉన్నాయి)', new_group_opt: 'కొత్త గ్రూప్ లో',
+    add_member_modal_btn: '✅', add_member_modal_text: 'సభ్యుడు చేర్చు + వాట్సాప్ పంపు',
+    // toasts
+    toast_reminder_sent: '📲 5 సభ్యులకు రిమైండర్ పంపబడింది!',
+    toast_auction_reminder: '📲 20 సభ్యులకు వేలం రిమైండర్ పంపబడింది!',
+    toast_auction_saved: '🏆 వేలం సేవ్ అయింది! డివిడెండ్ లెక్కించబడింది. 20 సభ్యులకు వాట్సాప్ వెళ్ళింది!',
+    toast_suresh_paid: '✅ సురేష్ చెల్లింపు రికార్డు చేయబడింది! రసీదు పంపబడింది.',
+    toast_suresh_reminded: '📲 సురేష్ కి రిమైండర్ పంపబడింది!',
+    toast_venkat_paid: '✅ వెంకట్ చెల్లింపు రికార్డు చేయబడింది! రసీదు పంపబడింది.',
+    toast_venkat_reminded: '📲 వెంకట్ కి రిమైండర్ పంపబడింది!',
+    toast_remind_pending: '📲 2 పెండింగ్ సభ్యులకు రిమైండర్లు పంపబడ్డాయి!',
+    toast_statement_sent: '📲 రవి కి స్టేట్‌మెంట్ వాట్సాప్ లో పంపబడింది!',
+    toast_pdf_download: '📄 పాస్‌బుక్ PDF డౌన్‌లోడ్ అయింది!',
+    toast_report: '📊 నెలవారీ నివేదిక డౌన్‌లోడ్ అవుతుంది...',
+    toast_gst: '📄 GST ఇన్వాయిస్ తయారైంది!',
+    toast_ledger: '📋 చందాదారుల లెడ్జర్ డౌన్‌లోడ్ అయింది!',
+    toast_docs: '📁 పత్రాల వాల్ట్ తెరవబడింది!',
+    toast_group_created: '✅ కొత్త గ్రూప్ తయారైంది! ₹499/నెల ప్లాన్ కి జోడించబడింది.',
+    toast_member_added: '✅ సభ్యుడు చేర్చబడ్డారు! వాట్సాప్ లో స్వాగత సందేశం పంపబడింది.',
+    page_subs: {home:'రమేష్ గారి చిట్ మేనేజర్',groups:'మీ అన్ని గ్రూపులు',collections:'చెల్లింపు సేకరణ',auctions:'వేలం మేనేజర్',members:'సభ్యుల జాబితా',portal:'సభ్యుడి పోర్టల్',more:'అమరికలు & మరిన్ని'},
+  },
+
+  // ── TELUGU + ENGLISH (MIXED) ──────────────────────────────────
+  'te-en': {
+    lang_chip: 'తె+En',
+    topbar_sub: 'Ramesh గారి Chit Manager',
+    btn_new_group: '+ కొత్త Group',
+    summary_title: 'మీ Summary — March 2025',
+    earned_label: 'ఈ నెల సంపాదన', earned_sub: '8 groups నుండి',
+    members_label: 'Total Members', members_sub: '8 groups లో',
+    paid_label: 'పైసలు వచ్చాయి', paid_sub: 'members paid',
+    pending_label: 'ఇంకా రాలేదు', pending_sub: 'members pending',
+    alert_defaulter_title: '5 members పైసలు ఇవ్వలేదు',
+    alert_defaulter_sub: 'Suresh, Kavitha మరియు 3 మందికి reminder పంపండి',
+    quick_actions: 'త్వరగా చేయండి',
+    qa_payment: 'Payment తీసుకో', qa_payment_sub: 'Member paid చేశారు',
+    qa_auction: 'Auction చేయి', qa_auction_sub: 'ఈ నెల winner',
+    qa_remind: 'Reminder పంపు', qa_remind_sub: 'WhatsApp లో',
+    qa_member: 'Member చూడు', qa_member_sub: 'Profile & history',
+    active_groups: 'Active Groups', view_all: 'అన్నీ చూడు →',
+    group_a_sub: '20 members · ₹20,000/month',
+    group_b_sub: '20 members · ₹30,000/month',
+    group_c_sub: '17/20 members · ₹50,000/month',
+    month_8: 'Month 8', month_12: 'Month 12',
+    slots_open: '3 slots!', filling: 'Filling',
+    auction_tomorrow: 'Platinum Group C — Auction రేపు!',
+    auction_remind_q: '20 members కి auction reminder పంపాలా?',
+    send_reminder: '📲 Reminder పంపు', do_auction: 'Auction చేయి',
+    all_groups_title: 'మీ అన్ని Groups',
+    total_groups_lbl: 'Total Groups', corpus_lbl: 'Total Corpus', maturing_lbl: 'Maturing Soon',
+    groups_list: 'Groups List', new_btn: '+ కొత్తది',
+    gold_detail: '20 members · ₹20,000/month · 5% commission',
+    silver_detail: '20 members · ₹30,000/month · 5% commission',
+    plat_detail: '17/20 members · ₹50,000/month',
+    diamond_detail: '20 members · ₹25,000/month · Month 15/20',
+    emerald_detail: '20 members · ₹15,000/month · Month 18/20',
+    sapphire_detail: '20 members · ₹20,000/month · Month 19/20',
+    per_month: 'per month', per_month2: 'per month', per_month3: 'per month',
+    filling2: 'Filling', slots3: '3 slots',
+    ending: 'Ending!', two_months: '2 months',
+    last_month: 'Last!', one_month: '1 month',
+    open_new_group: 'కొత్త Group తెరవు',
+    collections_title: 'Payment Collection',
+    paid_lbl: 'Paid ✅', pending_lbl: 'Pending ⏳', collected_lbl: 'Collected',
+    members_march: 'Members — March', remind_all: 'Remind పంపు',
+    ravi_paid: 'Mar 2 · UPI · ₹1,000',
+    priya_paid: 'Mar 3 · Cash · ₹1,000',
+    anand_paid: 'Mar 5 · Bank · ₹1,000',
+    suresh_overdue: '8 రోజులు అయింది — ₹1,000',
+    venkat_pending: '2 రోజులు అయింది — ₹1,000',
+    lakshmi_paid: 'Mar 4 · UPI · ₹1,000',
+    paid_badge: 'Paid', paid_badge2: 'Paid', paid_badge3: 'Paid', paid_badge4: 'Paid',
+    mark_paid: '💰 Paid', remind_btn: '📲 Remind',
+    mark_paid2: '💰 Paid', remind_btn2: '📲 Remind',
+    auction_title: 'Auction',
+    last_auction_label: 'LAST AUCTION · GOLD GROUP A · MONTH 8',
+    winner_announce: '🏆 Ravi Kumar గెలిచారు!',
+    auction_breakdown: 'మీ commission: ₹1,000 ✓ | Member dividend: ₹79 each\n20 members కి WhatsApp వెళ్ళింది ✓',
+    new_auction: 'కొత్త Auction చేయి',
+    which_group: 'ఏ Group లో Auction?',
+    plat_month3: 'Platinum Group C — Month 3 (₹50,000)',
+    gold_month9: 'Gold Group A — Month 9 (₹20,000)',
+    auction_type_lbl: 'Auction Type',
+    lowest_bid: 'Lowest bid (వేలం)', lottery: 'Lottery (లాటరీ)',
+    winner_name_lbl: 'Winner పేరు', select_member: 'Select member...',
+    bid_amount_lbl: 'Winner Bid Amount (₹)',
+    auto_calc_title: 'Auto Calculate అవుతుంది',
+    auto_calc_sub: 'Bid enter చేయగానే commission, dividend అన్నీ automatic',
+    save_auction_btn: '🏆', save_auction_text: 'Auction Save + WhatsApp పంపు',
+    prized_title: 'Prize తీసుకున్నారు',
+    priya_won: 'Month 2 · ₹18,200 తీసుకున్నారు',
+    anand_won: 'Month 5 · ₹17,800 తీసుకున్నారు',
+    ravi_won: 'Month 8 · ₹17,500 తీసుకున్నారు',
+    suresh_waiting: 'ఇంకా prize తీసుకోలేదు',
+    kavitha_waiting: 'ఇంకా prize తీసుకోలేదు',
+    done_badge: 'Done ✓', done_badge2: 'Done ✓', done_badge3: 'Done ✓',
+    waiting_badge: 'Waiting', waiting_badge2: 'Waiting',
+    members_title: 'Members',
+    total_lbl: 'Total', reliable_lbl: '⭐ Reliable', defaulters_lbl: '⚠️ Late',
+    member_list: 'Member List', add_new: '+ కొత్తవారు',
+    ravi_detail: 'Gold A · ₹8,000 paid · Always on time',
+    priya_detail: 'Gold A + Silver B · Always on time',
+    suresh_detail: 'Gold A · 8 days overdue · ₹1,000',
+    kavitha_detail: 'Platinum C · 5 days overdue',
+    anand_detail: 'Gold A + Diamond D · Always on time',
+    good_badge: 'Good', good_badge2: 'Good', good_badge3: 'Good',
+    late_badge: 'Late!', late_badge2: 'Late!',
+    add_member_btn: 'కొత్త Member చేర్చు',
+    portal_group_sub: 'Gold Group A · Member from Jan 2024',
+    ravi_summary: 'Ravi వారి Summary',
+    total_paid_lbl: 'Total Paid', eight_months: '8 months',
+    prize_lbl: 'Prize తీసుకున్నారు', month8: 'Month 8 లో',
+    dividend_lbl: 'Total Dividend', eight_mo: '8 months లో',
+    months_left_lbl: 'మిగిలిన Months', ends_jan: 'ends Jan 2026',
+    progress_title: 'Group Progress',
+    month_8_of_20: 'Month 8 of 20', next_due: 'Next payment due: March 25, 2025',
+    payment_history: 'Payment History',
+    mar_2025: 'March 2025', mar_detail: 'Paid ₹1,000 · Dividend ₹79',
+    feb_2025: 'February 2025', feb_detail: 'Paid ₹1,000 · Won Prize ₹17,500!',
+    jan_2025: 'January 2025', jan_detail: 'Paid ₹1,000 · Dividend ₹84',
+    paid_b: 'Paid', paid_b2: 'Paid', won_b: 'Won!',
+    send_whatsapp_btn: '📲', send_whatsapp_text: 'WhatsApp కి పంపు',
+    download_pdf_btn: '📄', download_pdf_text: 'Passbook Download',
+    more_title: 'మరిన్ని Options',
+    language_setting: 'భాష మార్చు / Change Language',
+    whatsapp_auto: 'WhatsApp Automation',
+    wa_reminder: 'Payment Reminder', wa_reminder_sub: 'Due date కి 3 రోజుల ముందు',
+    wa_receipt: 'Payment Receipt', wa_receipt_sub: 'Paid అయినప్పుడు instant',
+    wa_auction: 'Auction Result', wa_auction_sub: 'Winner announce అవ్వగానే',
+    wa_defaulter: 'Defaulter Reminder', wa_defaulter_sub: '5వ రోజు మరియు 10వ రోజు',
+    wa_renewal: 'Renewal Nudge', wa_renewal_sub: '2 months ముందు alert',
+    reports_compliance: 'Reports & Compliance',
+    monthly_report: 'Monthly Report', monthly_report_sub: 'March 2025 commission & collections',
+    gst_invoice: 'GST Invoice', gst_sub: 'Commission పై 18% GST — ₹1,512',
+    subscriber_ledger: 'Subscriber Ledger', ledger_sub: 'Registrar filing — Due Apr 15',
+    doc_vault: 'Document Vault', doc_vault_sub: 'Agreements, KYC, certificates',
+    account: 'Account', account_sub: 'Foreman · 8 groups · ₹3,992/month',
+    help_support: 'Help & Support', support_sub: 'Telugu లో support available',
+    nav_home: 'Home', nav_groups: 'Groups', nav_collections: 'Collections', nav_members: 'Members', nav_more: 'More',
+    modal_new_group_title: 'కొత్త Chit Group',
+    group_name_lbl: 'Group పేరు ఏమి పెడతారు?',
+    how_many_members: 'Members ఎంత మంది?', monthly_amount_lbl: 'నెల Amount (₹)',
+    duration_lbl: 'Duration (months)', commission_lbl: 'Commission (%)',
+    auction_type_modal: 'Auction Type', vela: 'వేలం (Lowest bid)', lottery2: 'లాటరీ (Lottery)',
+    plan_add_title: 'మీ plan కి ₹499 add అవుతుంది',
+    plan_add_sub: 'ఈ group మీ monthly plan కి automatically add అవుతుంది',
+    create_group_btn: '✅', create_group_text: 'Group తెరవు',
+    modal_add_member_title: 'కొత్త Member చేర్చు',
+    full_name_lbl: 'పేరు (Full Name)', phone_lbl: 'Phone Number',
+    pan_lbl: 'PAN (optional)', assign_group_lbl: 'ఏ Group లో చేర్చాలి?',
+    plat_slots: 'Platinum Group C (3 slots open)', new_group_opt: 'కొత్త group లో',
+    add_member_modal_btn: '✅', add_member_modal_text: 'Member చేర్చు + WhatsApp పంపు',
+    toast_reminder_sent: '📲 5 members కి reminder పంపబడింది!',
+    toast_auction_reminder: '📲 20 members కి auction reminder పంపబడింది!',
+    toast_auction_saved: '🏆 Auction saved! Dividend calculated. WhatsApp sent to 20 members!',
+    toast_suresh_paid: '✅ Suresh payment recorded! Receipt sent.',
+    toast_suresh_reminded: '📲 Reminder sent to Suresh!',
+    toast_venkat_paid: '✅ Venkat payment recorded! Receipt sent.',
+    toast_venkat_reminded: '📲 Reminder sent to Venkat!',
+    toast_remind_pending: '📲 2 pending members కి reminders పంపబడ్డాయి!',
+    toast_statement_sent: '📲 Ravi కి statement WhatsApp లో పంపబడింది!',
+    toast_pdf_download: '📄 Passbook PDF downloaded!',
+    toast_report: '📊 Monthly report downloading...',
+    toast_gst: '📄 GST Invoice generated!',
+    toast_ledger: '📋 Subscriber Ledger downloaded!',
+    toast_docs: '📁 Document vault opened!',
+    toast_group_created: '✅ New group created! ₹499/month added to plan.',
+    toast_member_added: '✅ Member added! Welcome WhatsApp sent.',
+    page_subs: {home:'Ramesh గారి Chit Manager',groups:'మీ అన్ని Groups',collections:'Payment Collection',auctions:'Auction Manager',members:'Member List',portal:'Member Portal',more:'Settings & More'},
+  },
+
+  // ── SIMPLE ENGLISH ────────────────────────────────────────────
+  en: {
+    lang_chip: 'EN',
+    topbar_sub: "Ramesh's Chit Manager",
+    btn_new_group: '+ New Group',
+    summary_title: 'Your Summary — March 2025',
+    earned_label: 'Earned This Month', earned_sub: 'from 8 groups',
+    members_label: 'Total Members', members_sub: 'in 8 groups',
+    paid_label: 'Money Received', paid_sub: 'members paid',
+    pending_label: 'Not Paid Yet', pending_sub: 'members pending',
+    alert_defaulter_title: '5 members have not paid',
+    alert_defaulter_sub: 'Send reminder to Suresh, Kavitha and 3 others',
+    quick_actions: 'Quick Actions',
+    qa_payment: 'Take Payment', qa_payment_sub: 'Member has paid',
+    qa_auction: 'Do Auction', qa_auction_sub: 'This month winner',
+    qa_remind: 'Send Reminder', qa_remind_sub: 'On WhatsApp',
+    qa_member: 'View Member', qa_member_sub: 'Profile & history',
+    active_groups: 'Active Groups', view_all: 'View all →',
+    group_a_sub: '20 members · ₹20,000/month',
+    group_b_sub: '20 members · ₹30,000/month',
+    group_c_sub: '17/20 members · ₹50,000/month',
+    month_8: 'Month 8', month_12: 'Month 12',
+    slots_open: '3 slots open!', filling: 'Filling',
+    auction_tomorrow: 'Platinum Group C — Auction Tomorrow!',
+    auction_remind_q: 'Send auction reminder to 20 members?',
+    send_reminder: '📲 Send Reminder', do_auction: 'Do Auction',
+    all_groups_title: 'All Your Groups',
+    total_groups_lbl: 'Total Groups', corpus_lbl: 'Total Money', maturing_lbl: 'Ending Soon',
+    groups_list: 'Groups List', new_btn: '+ New',
+    gold_detail: '20 members · ₹20,000/month · 5% commission',
+    silver_detail: '20 members · ₹30,000/month · 5% commission',
+    plat_detail: '17/20 members · ₹50,000/month',
+    diamond_detail: '20 members · ₹25,000/month · Month 15/20',
+    emerald_detail: '20 members · ₹15,000/month · Month 18/20',
+    sapphire_detail: '20 members · ₹20,000/month · Month 19/20',
+    per_month: 'per month', per_month2: 'per month', per_month3: 'per month',
+    filling2: 'Filling', slots3: '3 slots',
+    ending: 'Ending soon!', two_months: '2 months',
+    last_month: 'Last month!', one_month: '1 month',
+    open_new_group: 'Open New Group',
+    collections_title: 'Payment Collection',
+    paid_lbl: 'Paid ✅', pending_lbl: 'Pending ⏳', collected_lbl: 'Collected',
+    members_march: 'Members — March', remind_all: 'Remind All',
+    ravi_paid: 'Mar 2 · UPI · ₹1,000',
+    priya_paid: 'Mar 3 · Cash · ₹1,000',
+    anand_paid: 'Mar 5 · Bank · ₹1,000',
+    suresh_overdue: '8 days late — ₹1,000',
+    venkat_pending: '2 days late — ₹1,000',
+    lakshmi_paid: 'Mar 4 · UPI · ₹1,000',
+    paid_badge: 'Paid', paid_badge2: 'Paid', paid_badge3: 'Paid', paid_badge4: 'Paid',
+    mark_paid: '💰 Paid', remind_btn: '📲 Remind',
+    mark_paid2: '💰 Paid', remind_btn2: '📲 Remind',
+    auction_title: 'Auction',
+    last_auction_label: 'LAST AUCTION · GOLD GROUP A · MONTH 8',
+    winner_announce: '🏆 Ravi Kumar Won!',
+    auction_breakdown: 'Your commission: ₹1,000 ✓ | Member dividend: ₹79 each\nWhatsApp sent to all 20 members ✓',
+    new_auction: 'Record New Auction',
+    which_group: 'Which group?',
+    plat_month3: 'Platinum Group C — Month 3 (₹50,000)',
+    gold_month9: 'Gold Group A — Month 9 (₹20,000)',
+    auction_type_lbl: 'Auction Type',
+    lowest_bid: 'Lowest bid (auction)', lottery: 'Lottery (lucky draw)',
+    winner_name_lbl: 'Winner Name', select_member: 'Select member...',
+    bid_amount_lbl: 'Winner Bid Amount (₹)',
+    auto_calc_title: 'Auto Calculated',
+    auto_calc_sub: 'Enter bid — commission & dividend calculated automatically',
+    save_auction_btn: '🏆', save_auction_text: 'Save Auction + Send WhatsApp',
+    prized_title: 'Already Won Prize',
+    priya_won: 'Month 2 · Got ₹18,200',
+    anand_won: 'Month 5 · Got ₹17,800',
+    ravi_won: 'Month 8 · Got ₹17,500',
+    suresh_waiting: 'Has not won prize yet',
+    kavitha_waiting: 'Has not won prize yet',
+    done_badge: 'Done ✓', done_badge2: 'Done ✓', done_badge3: 'Done ✓',
+    waiting_badge: 'Waiting', waiting_badge2: 'Waiting',
+    members_title: 'Members',
+    total_lbl: 'Total', reliable_lbl: '⭐ Reliable', defaulters_lbl: '⚠️ Late',
+    member_list: 'Member List', add_new: '+ Add New',
+    ravi_detail: 'Gold A · ₹8,000 paid · Always on time',
+    priya_detail: 'Gold A + Silver B · Always on time',
+    suresh_detail: 'Gold A · 8 days late · ₹1,000',
+    kavitha_detail: 'Platinum C · 5 days late',
+    anand_detail: 'Gold A + Diamond D · Always on time',
+    good_badge: 'Good', good_badge2: 'Good', good_badge3: 'Good',
+    late_badge: 'Late!', late_badge2: 'Late!',
+    add_member_btn: 'Add New Member',
+    portal_group_sub: 'Gold Group A · Member since Jan 2024',
+    ravi_summary: "Ravi's Summary",
+    total_paid_lbl: 'Total Paid', eight_months: '8 months',
+    prize_lbl: 'Prize Received', month8: 'In Month 8',
+    dividend_lbl: 'Total Dividend', eight_mo: 'in 8 months',
+    months_left_lbl: 'Months Left', ends_jan: 'ends Jan 2026',
+    progress_title: 'Group Progress',
+    month_8_of_20: 'Month 8 of 20', next_due: 'Next payment due: March 25, 2025',
+    payment_history: 'Payment History',
+    mar_2025: 'March 2025', mar_detail: 'Paid ₹1,000 · Dividend ₹79',
+    feb_2025: 'February 2025', feb_detail: 'Paid ₹1,000 · Won Prize ₹17,500!',
+    jan_2025: 'January 2025', jan_detail: 'Paid ₹1,000 · Dividend ₹84',
+    paid_b: 'Paid', paid_b2: 'Paid', won_b: 'Won!',
+    send_whatsapp_btn: '📲', send_whatsapp_text: 'Send on WhatsApp',
+    download_pdf_btn: '📄', download_pdf_text: 'Download Passbook',
+    more_title: 'More Options',
+    language_setting: 'Change Language / భాష',
+    whatsapp_auto: 'WhatsApp Automation',
+    wa_reminder: 'Payment Reminder', wa_reminder_sub: '3 days before due date',
+    wa_receipt: 'Payment Receipt', wa_receipt_sub: 'Instant when member pays',
+    wa_auction: 'Auction Result', wa_auction_sub: 'Sent right after auction',
+    wa_defaulter: 'Late Payment Reminder', wa_defaulter_sub: 'Day 5 and day 10 follow-up',
+    wa_renewal: 'Renewal Reminder', wa_renewal_sub: 'Alert 2 months before end',
+    reports_compliance: 'Reports & Compliance',
+    monthly_report: 'Monthly Report', monthly_report_sub: 'March 2025 commission & collections',
+    gst_invoice: 'GST Invoice', gst_sub: '18% GST on commission — ₹1,512',
+    subscriber_ledger: 'Subscriber Ledger', ledger_sub: 'Registrar filing — Due Apr 15',
+    doc_vault: 'Document Vault', doc_vault_sub: 'Agreements, KYC, certificates',
+    account: 'Account', account_sub: 'Foreman · 8 groups · ₹3,992/month',
+    help_support: 'Help & Support', support_sub: 'Support available in Telugu too',
+    nav_home: 'Home', nav_groups: 'Groups', nav_collections: 'Payments', nav_members: 'Members', nav_more: 'More',
+    modal_new_group_title: 'New Chit Group',
+    group_name_lbl: 'What is the group name?',
+    how_many_members: 'How many members?', monthly_amount_lbl: 'Monthly Amount (₹)',
+    duration_lbl: 'Duration (months)', commission_lbl: 'Commission (%)',
+    auction_type_modal: 'Auction Type', vela: 'Lowest bid (auction)', lottery2: 'Lottery (lucky draw)',
+    plan_add_title: '₹499 will be added to your plan',
+    plan_add_sub: 'This group will be automatically added to your monthly plan',
+    create_group_btn: '✅', create_group_text: 'Open Group',
+    modal_add_member_title: 'Add New Member',
+    full_name_lbl: 'Full Name', phone_lbl: 'Phone Number',
+    pan_lbl: 'PAN (optional)', assign_group_lbl: 'Which group to add in?',
+    plat_slots: 'Platinum Group C (3 slots open)', new_group_opt: 'New group',
+    add_member_modal_btn: '✅', add_member_modal_text: 'Add Member + Send WhatsApp',
+    toast_reminder_sent: '📲 Reminder sent to 5 members!',
+    toast_auction_reminder: '📲 Auction reminder sent to 20 members!',
+    toast_auction_saved: '🏆 Auction saved! Dividend calculated. WhatsApp sent to 20 members!',
+    toast_suresh_paid: '✅ Suresh payment recorded! Receipt sent.',
+    toast_suresh_reminded: '📲 Reminder sent to Suresh!',
+    toast_venkat_paid: '✅ Venkat payment recorded! Receipt sent.',
+    toast_venkat_reminded: '📲 Reminder sent to Venkat!',
+    toast_remind_pending: '📲 Reminders sent to 2 pending members!',
+    toast_statement_sent: '📲 Statement sent to Ravi on WhatsApp!',
+    toast_pdf_download: '📄 Passbook PDF downloaded!',
+    toast_report: '📊 Monthly report downloading...',
+    toast_gst: '📄 GST Invoice generated!',
+    toast_ledger: '📋 Subscriber Ledger downloaded!',
+    toast_docs: '📁 Document vault opened!',
+    toast_group_created: '✅ New group created! ₹499/month added to plan.',
+    toast_member_added: '✅ Member added! Welcome WhatsApp sent.',
+    page_subs: {home:"Ramesh's Chit Manager",groups:'All Your Groups',collections:'Payment Collection',auctions:'Auction Manager',members:'Member List',portal:'Member Portal',more:'Settings & More'},
+  }
+};
+
+// ─── CURRENT LANG ───────────────────────────────────────────────
+let currentLang = 'te-en';
+let selectedLang = null;
+
+function T(key) {
+  return LANGS[currentLang][key] || LANGS['te-en'][key] || key;
+}
+
+function applyTranslations(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.getAttribute('data-key');
+    if (LANGS[lang][key] !== undefined) el.textContent = LANGS[lang][key];
+  });
+  document.getElementById('lang-chip-label').textContent = LANGS[lang].lang_chip;
+  // update lang row highlights
+  ['te','te-en','en'].forEach(l => {
+    const row = document.getElementById('lang-row-'+l);
+    if(row) row.classList.toggle('active-lang', l === lang);
+  });
+  // update page sub
+  if(currentPage && LANGS[lang].page_subs) {
+    document.getElementById('topbar-sub').textContent = LANGS[lang].page_subs[currentPage] || '';
+  }
+}
+
+function selectLang(lang) {
+  selectedLang = lang;
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('selected'));
+  document.getElementById('lopt-'+lang).classList.add('selected');
+  const btn = document.getElementById('lang-continue-btn');
+  btn.classList.add('show');
+  const labels = {te:'తెలుగు లో Continue చేయి', 'te-en':'Continue చేయి', en:'Continue'};
+  document.getElementById('continue-text').textContent = labels[lang] || 'Continue';
+}
+
+function confirmLang() {
+  if(!selectedLang) return;
+  currentLang = selectedLang;
+  document.getElementById('lang-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+  applyTranslations(currentLang);
+}
+
+function changeLang(lang) {
+  currentLang = lang;
+  applyTranslations(lang);
+  showToast(lang === 'te' ? '✅ భాష మార్చబడింది — తెలుగు' : lang === 'te-en' ? '✅ భాష మార్చబడింది — తెలుగు + English' : '✅ Language changed to English');
+}
+
+// ─── NAVIGATION ─────────────────────────────────────────────────
+const pages = ['home','groups','collections','auctions','members','portal','more'];
+let currentPage = 'home';
+
+function goto(page) {
+  pages.forEach(p => {
+    const el = document.getElementById('page-'+p);
+    if(el) el.classList.remove('active');
+    const bn = document.getElementById('bnav-'+p);
+    if(bn) bn.classList.remove('active');
+  });
+  const target = document.getElementById('page-'+page);
+  if(target) target.classList.add('active');
+  const bnav = document.getElementById('bnav-'+page);
+  if(bnav) bnav.classList.add('active');
+  document.getElementById('scroll').scrollTop = 0;
+  currentPage = page;
+  if(LANGS[currentLang].page_subs)
+    document.getElementById('topbar-sub').textContent = LANGS[currentLang].page_subs[page] || '';
+}
+
+function openModal(id){ document.getElementById('modal-'+id).classList.add('open'); }
+function closeModal(id){ document.getElementById('modal-'+id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+});
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.display='none'; }, 3000);
+}
+
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', function(){
+    this.closest('.pill-tabs').querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Load Dashboard Data from API
+async function loadDashboardData() {
+  try {
+    const res = await fetch('/api/v1/dashboard/summary');
+    if (!res.ok) throw new Error('Failed to load');
+    const data = await res.json();
+    
+    document.getElementById('dash-earned').textContent = '₹' + data.earned_this_month.toLocaleString('en-IN');
+    document.getElementById('dash-members').textContent = data.total_joined_members + '/' + data.total_expected_members;
+    document.getElementById('dash-members-sub').textContent = data.groups_count + ' groups లో';
+    document.getElementById('dash-paid').textContent = data.paid_members;
+    document.getElementById('dash-pending').textContent = data.pending_members;
+  } catch (err) {
+    console.error(err);
+    document.getElementById('dash-earned').textContent = 'Error';
+    document.getElementById('dash-members').textContent = 'Error';
+  }
+}
+async function loadGroups() {
+  try {
+    const res = await fetch('/api/v1/groups');
+    if (!res.ok) throw new Error('Failed to load groups');
+    const data = await res.json();
+    const groups = data.data || [];
+    
+    // Calculate total corpus
+    const totalCorpus = groups.reduce((acc, g) => acc + (g.monthly_amount * g.member_count), 0);
+    document.querySelector('.srh-val[style="color:var(--green-dark)"]').textContent = '₹' + (totalCorpus/100000).toFixed(1) + 'L';
+    document.querySelector('.srh-val').textContent = groups.length;
+    
+    // Render Active Groups
+    const activeList = document.getElementById('active-groups-list');
+    activeList.innerHTML = groups.slice(0, 3).map((g, i) => {
+      const emoji = i===0 ? '🥇' : i===1 ? '🥈' : '🏅';
+      const bg = i===0 ? 'green-bg' : i===1 ? 'blue-bg' : 'amber-bg';
+      const monthlyStr = '₹' + g.monthly_amount.toLocaleString('en-IN') + '/month';
+      return `
+        <div class="row-item" onclick="goto('groups')">
+          <div class="ri-avatar ${bg}">${emoji}</div>
+          <div class="ri-info">
+            <div class="ri-name">${g.name}</div>
+            <div class="ri-sub">${g.member_count} members · ${monthlyStr}</div>
+            <div class="prog-bar" style="margin-top:6px;height:5px"><div class="prog-fill" style="width:10%"></div></div>
+          </div>
+          <div class="ri-right"><div style="font-size:14px;font-weight:700;color:var(--green-dark)">...</div><span class="badge badge-green">New</span></div>
+        </div>
+      `;
+    }).join('');
+    
+    // Render All Groups
+    const allList = document.getElementById('all-groups-list');
+    allList.innerHTML = groups.map((g, i) => {
+      const commStr = '₹' + (g.monthly_amount * g.member_count * (g.commission_pct/100) / g.duration_months).toLocaleString('en-IN');
+      const emoji = i%3===0 ? '🥇' : i%3===1 ? '🥈' : '🔴';
+      const bg = i%3===0 ? 'green-bg' : i%3===1 ? 'blue-bg' : 'red-bg';
+      return `
+        <div class="row-item"><div class="ri-avatar ${bg}" style="font-size:22px">${emoji}</div><div class="ri-info"><div class="ri-name">${g.name}</div><div class="ri-sub">${g.member_count} members · ₹${g.monthly_amount.toLocaleString('en-IN')}/month · ${g.commission_pct}% commission</div></div><div class="ri-right"><div style="font-size:14px;font-weight:700;color:var(--green-dark)">${commStr}</div><div style="font-size:11px;color:var(--text3)">per month</div></div></div>
+      `;
+    }).join('');
+    
+  } catch (err) {
+    console.error('Failed to load groups:', err);
+    document.getElementById('active-groups-list').innerHTML = '<div style="padding:16px;text-align:center;">Failed to load groups.</div>';
+    document.getElementById('all-groups-list').innerHTML = '<div style="padding:16px;text-align:center;">Failed to load groups.</div>';
+  }
+}
+
+async function createGroup() {
+  const name = document.getElementById('new-group-name').value;
+  const members = parseInt(document.getElementById('new-group-members').value) || 20;
+  const amount = parseInt(document.getElementById('new-group-amount').value) || 10000;
+  const duration = parseInt(document.getElementById('new-group-duration').value) || 20;
+  
+  if (!name) return alert("Group name is required");
+  
+  const btn = document.getElementById('btn-create-group');
+  const orgText = btn.innerHTML;
+  btn.innerHTML = 'Creating...';
+  
+  try {
+    const res = await fetch('/api/v1/groups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        monthly_amount: amount,
+        member_count: members,
+        duration_months: duration
+      })
+    });
+    
+    if (res.ok) {
+       closeModal('newGroup');
+       showToast(T('toast_group_created'));
+       loadGroups();
+       // Generate link
+       const data = await res.json();
+       if (data.data && data.data.id) {
+           const joinUrl = window.location.origin + '/join.html?groupId=' + data.data.id;
+           setTimeout(() => {
+               alert(`Group created! Share this join link:\n${joinUrl}`);
+           }, 1000);
+       }
+    } else {
+       alert("Failed to create group");
+    }
+  } catch(e) {
+    alert("Error creating group");
+  } finally {
+    btn.innerHTML = orgText;
+  }
+}
+
+// Initial load
+loadDashboardData();
+loadGroups();
+</script>
+</body>
+</html>
