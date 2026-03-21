@@ -11,8 +11,9 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static frontend files from the project root
-const staticPath = path.resolve(__dirname, '..');
+const staticPath = process.cwd();
 app.use(express.static(staticPath));
+
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -35,19 +36,25 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(staticPath, 'dashboard.html'));
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`\n🏦 ChitOS Server is running!`);
-  console.log(`   Dashboard: http://localhost:${PORT}/dashboard.html`);
-  console.log(`   Join Page: http://localhost:${PORT}/join.html`);
-  console.log(`   API:       http://localhost:${PORT}/api/v1/health\n`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const server = app.listen(PORT, () => {
+    console.log(`\n🏦 ChitOS Server is running!`);
+    console.log(`   Dashboard: http://localhost:${PORT}/dashboard.html`);
+    console.log(`   Join Page: http://localhost:${PORT}/join.html`);
+    console.log(`   API:       http://localhost:${PORT}/api/v1/health\n`);
+  });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`\n❌ Port ${PORT} is already in use!`);
-    console.error(`   Run: taskkill /F /PID $(netstat -ano | findstr :${PORT})`);
-    console.error(`   Or change PORT in your .env file.\n`);
-  } else {
-    console.error('Server error:', err);
-  }
-});
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n❌ Port ${PORT} is already in use!`);
+      console.error(`   Run: taskkill /F /PID $(netstat -ano | findstr :${PORT})`);
+      console.error(`   Or change PORT in your .env file.\n`);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
+
+module.exports = app;
+
