@@ -69,8 +69,8 @@ html,body{min-height:100%;background:var(--bg);font-family:'Outfit',sans-serif;c
 .form-input.phone-input{font-size:24px;font-weight:800;letter-spacing:1px}
 .form-input.error{border-color:var(--red);background:var(--red-light)}
 
-.otp-row{display:flex;gap:12px;margin-bottom:20px}
-.otp-box{flex:1;padding:18px 8px;background:var(--bg);border:2px solid var(--border);border-radius:18px;font-size:28px;font-weight:800;text-align:center;font-family:'Outfit',sans-serif;outline:none;transition:all 0.2s}
+.otp-row{display:flex;gap:8px;margin:0 auto 20px;max-width:300px}
+.otp-box{flex:1;width:0;padding:12px 4px;background:var(--bg);border:2px solid var(--border);border-radius:18px;font-size:24px;font-weight:800;text-align:center;font-family:'Outfit',sans-serif;outline:none;transition:all 0.2s}
 .otp-box:focus{border-color:var(--accent);background:#fff}
 
 .btn-big{width:100%;padding:18px;background:var(--accent);color:#fff;border:none;border-radius:20px;font-size:18px;font-weight:800;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.15s;margin-top:8px;box-shadow:0 8px 16px -4px rgba(16,185,129,0.3)}
@@ -271,12 +271,12 @@ const T = {
     slots_note: '⚡ త్వరగా join అవ్వండి — slots తక్కువగా ఉన్నాయి!',
     your_details_title: '👤 మీ వివరాలు నమోదు చేయండి',
     name_label: 'మీ పూర్తి పేరు',
-    phone_label: 'మీ WhatsApp నంబర్',
+    phone_label: 'మీ మొబైల్ నంబర్',
     privacy_note: '🔒 మీ నంబర్ సురక్షితంగా ఉంటుంది. Spam రాదు.',
-    btn_otp_text: 'OTP పంపండి WhatsApp కి',
-    otp_note: 'మీ WhatsApp కి ఒక OTP వస్తుంది — అది enter చేస్తే join అవుతారు',
+    btn_otp_text: 'OTP పంపండి (SMS)',
+    otp_note: 'మీ ఫోన్ కి SMS ద్వారా OTP వస్తుంది — అది enter చేస్తే join అవుతారు',
     otp_title: '🔐 OTP Verify చేయండి',
-    otp_hint: 'కి WhatsApp లో OTP పంపాం. Enter చేయండి.',
+    otp_hint: 'కి SMS లో OTP పంపాం. Enter చేయండి.',
     btn_verify_text: 'Verify చేయి & Join అవ్వు',
     resend_label: 'OTP రాలేదా? ',
     resend_btn_text: 'మళ్ళీ పంపు',
@@ -287,10 +287,10 @@ const T = {
     otp_error: 'తప్పుడు OTP — మళ్ళీ try చేయండి',
     success_title: 'మీరు Join అయ్యారు! 🎉',
     success_sub: 'మీరు <strong>Gold Group A</strong> లో successfully register అయ్యారు.<br>రమేష్ కుమార్ గారు మీ చేరికను confirm చేస్తారు.',
-    sc_name_label: 'మీ పేరు', sc_phone_label: 'WhatsApp నంబర్',
+    sc_name_label: 'మీ పేరు', sc_phone_label: 'మొబైల్ నంబర్',
     sc_group_label: 'గ్రూప్', sc_amount_label: 'నెల మొత్తం', sc_first_due_label: 'మొదటి చెల్లింపు',
-    wa_save_btn: '💬 WhatsApp లో Save చేయండి',
-    save_note: 'మీ చెల్లింపు reminders మరియు నెలవారీ statements WhatsApp కి వస్తాయి',
+    wa_save_btn: '💬 Update ని పొందండి',
+    save_note: 'మీ చెల్లింపు reminders మరియు నెలవారీ statements SMS/Mobile కి వస్తాయి',
   },
   'te-en': {
     continue_btn: 'Continue చేయి',
@@ -301,12 +301,12 @@ const T = {
     slots_note: '⚡ త్వరగా join అవ్వండి — slots తక్కువగా ఉన్నాయి!',
     your_details_title: '👤 మీ details enter చేయండి',
     name_label: 'మీ పూర్తి పేరు',
-    phone_label: 'మీ WhatsApp Number',
+    phone_label: 'మీ Mobile Number',
     privacy_note: '🔒 మీ number safe గా ఉంటుంది. Spam రాదు.',
-    btn_otp_text: 'WhatsApp కి OTP పంపు',
-    otp_note: 'మీ WhatsApp కి OTP వస్తుంది — enter చేస్తే join అవుతారు',
+    btn_otp_text: 'Send OTP via SMS',
+    otp_note: 'మీ Mobile కి OTP వస్తుంది — enter చేస్తే join అవుతారు',
     otp_title: '🔐 OTP Verify చేయండి',
-    otp_hint: 'కి WhatsApp లో OTP పంపాం. Enter చేయండి.',
+    otp_hint: 'కి SMS లో OTP పంపాం. Enter చేయండి.',
     btn_verify_text: '✅ Verify చేయి & Join అవ్వు',
     resend_label: 'OTP రాలేదా? ',
     resend_btn_text: 'మళ్ళీ పంపు',
@@ -317,10 +317,10 @@ const T = {
     otp_error: 'Wrong OTP — మళ్ళీ try చేయండి',
     success_title: 'Join అయ్యారు! 🎉',
     success_sub: '<strong>Gold Group A</strong> లో successfully register అయ్యారు.<br>Ramesh Kumar గారు confirm చేస్తారు.',
-    sc_name_label: 'మీ పేరు', sc_phone_label: 'WhatsApp Number',
+    sc_name_label: 'మీ పేరు', sc_phone_label: 'Mobile Number',
     sc_group_label: 'Group', sc_amount_label: 'Monthly Amount', sc_first_due_label: 'First Payment',
-    wa_save_btn: '💬 WhatsApp లో Save చేయండి',
-    save_note: 'Payment reminders మరియు monthly statements WhatsApp కి వస్తాయి',
+    wa_save_btn: '💬 Get Updates',
+    save_note: 'Payment reminders మరియు monthly statements SMS ద్వారా వస్తాయి',
   },
   en: {
     continue_btn: 'Continue',
@@ -331,12 +331,12 @@ const T = {
     slots_note: '⚡ Join quickly — only 3 slots left!',
     your_details_title: '👤 Enter Your Details',
     name_label: 'Your Full Name',
-    phone_label: 'Your WhatsApp Number',
+    phone_label: 'Your Mobile Number',
     privacy_note: '🔒 Your number is safe. No spam.',
-    btn_otp_text: 'Send OTP on WhatsApp',
-    otp_note: 'You will get an OTP on WhatsApp — enter it to join',
+    btn_otp_text: 'Send OTP via SMS',
+    otp_note: 'You will get an OTP via SMS — enter it to join',
     otp_title: '🔐 Verify OTP',
-    otp_hint: '— we sent an OTP on WhatsApp. Please enter it.',
+    otp_hint: '— we sent an OTP via SMS. Please enter it.',
     btn_verify_text: '✅ Verify & Join Group',
     resend_label: "Didn't get OTP? ",
     resend_btn_text: 'Resend',
@@ -347,10 +347,10 @@ const T = {
     otp_error: 'Wrong OTP — please try again',
     success_title: "You've Joined! 🎉",
     success_sub: 'You have successfully registered in <strong>Gold Group A</strong>.<br>Ramesh Kumar will confirm your membership.',
-    sc_name_label: 'Your Name', sc_phone_label: 'WhatsApp Number',
+    sc_name_label: 'Your Name', sc_phone_label: 'Mobile Number',
     sc_group_label: 'Group', sc_amount_label: 'Monthly Amount', sc_first_due_label: 'First Payment',
-    wa_save_btn: '💬 Save on WhatsApp',
-    save_note: 'Your payment reminders and monthly statements will come on WhatsApp',
+    wa_save_btn: '💬 Get Updates',
+    save_note: 'Your payment reminders and monthly statements will come via SMS',
   }
 };
 
@@ -470,21 +470,46 @@ function checkForm() {
 // ── OTP FLOW ───────────────────────────────────────────────────
 let timerInterval;
 
-function sendOTP() {
+async function sendOTP() {
   const name = document.getElementById('input-name').value.trim();
   const phone = document.getElementById('input-phone').value.replace(/\s/g,'');
 
   if(name.length < 2){ showErr('name-error'); return; }
   if(!/^[6-9]\d{9}$/.test(phone)){ showErr('phone-error'); return; }
 
-  // Show OTP screen
-  document.getElementById('otp-phone-display').textContent = phone;
-  document.getElementById('otp-hint-text').innerHTML = '+91 <strong>' + phone + '</strong> ' + T[lang].otp_hint;
-  document.getElementById('form-step-a').style.display = 'none';
-  document.getElementById('form-step-b').style.display = 'block';
-  setStep(2);
-  startTimer();
-  document.getElementById('otp1').focus();
+  try {
+    document.getElementById('btn-otp-text').textContent = 'Sending...';
+    const res = await fetch('/api/v1/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+    
+    if (!res.ok) {
+        alert(data.error || 'Failed to send OTP');
+        document.getElementById('btn-otp-text').textContent = T[lang].btn_otp_text;
+        return;
+    }
+
+    // Show OTP screen
+    document.getElementById('otp-phone-display').textContent = phone;
+    document.getElementById('otp-hint-text').innerHTML = '+91 <strong>' + phone + '</strong> ' + T[lang].otp_hint;
+    document.getElementById('form-step-a').style.display = 'none';
+    document.getElementById('form-step-b').style.display = 'block';
+    setStep(2);
+    startTimer();
+    document.getElementById('otp1').focus();
+    
+    // For dev: auto-fill OTP if returned in debug
+    if (data.debugOtp) {
+        console.log("DEBUG: OTP is", data.debugOtp);
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+  } finally {
+    document.getElementById('btn-otp-text').textContent = T[lang].btn_otp_text;
+  }
 }
 
 async function verifyOTP() {
@@ -564,8 +589,7 @@ function startTimer() {
 function resendOTP() {
   ['otp1','otp2','otp3','otp4'].forEach(id => document.getElementById(id).value = '');
   hideErr('otp-error');
-  startTimer();
-  document.getElementById('otp1').focus();
+  sendOTP(); // Actually call sendOTP again
 }
 
 function otpMove(el, nextId) {
@@ -581,7 +605,7 @@ function saveToWhatsApp() {
   const name = document.getElementById('sc-name').textContent;
   const joinedGroupName = currentGroup ? currentGroup.name : 'Gold Group A';
   const monthlyAmt = currentGroup ? currentGroup.monthly_amount : 1000;
-  const msg = encodeURIComponent(`✅ ChitOS - ${joinedGroupName}\n\nనా పేరు: ${name}\nGroup: ${joinedGroupName}\nMonthly: ₹${monthlyAmt}\n\nSuccessfully joined! Reminders will come on WhatsApp.`);
+  const msg = encodeURIComponent(`✅ ChitOS - ${joinedGroupName}\n\nనా పేరు: ${name}\nGroup: ${joinedGroupName}\nMonthly: ₹${monthlyAmt}\n\nSuccessfully joined! Reminders will come via SMS.`);
   window.open('https://wa.me/?text=' + msg, '_blank');
 }
 

@@ -1186,7 +1186,17 @@ async function loadGroups() {
       const emoji = i%3===0 ? '🥇' : i%3===1 ? '🥈' : '🔴';
       const bg = i%3===0 ? 'green-bg' : i%3===1 ? 'blue-bg' : 'red-bg';
       return `
-        <div class="row-item"><div class="ri-avatar ${bg}" style="font-size:22px">${emoji}</div><div class="ri-info"><div class="ri-name">${g.name}</div><div class="ri-sub">${g.member_count} members · ₹${g.monthly_amount.toLocaleString('en-IN')}/month · ${g.commission_pct}% commission</div></div><div class="ri-right"><div style="font-size:14px;font-weight:700;color:var(--green-dark)">${commStr}</div><div style="font-size:11px;color:var(--text3)">per month</div></div></div>
+        <div class="row-item">
+          <div class="ri-avatar ${bg}" style="font-size:22px">${emoji}</div>
+          <div class="ri-info">
+            <div class="ri-name">${g.name}</div>
+            <div class="ri-sub">${g.member_count} members · ₹${g.monthly_amount.toLocaleString('en-IN')}/month · ${g.commission_pct}% commission</div>
+          </div>
+          <div class="ri-right">
+            <button class="btn-small" onclick="copyJoinLink('${g.id}')">🔗 Share</button>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">${commStr} ${T('per_month')}</div>
+          </div>
+        </div>
       `;
     }).join('');
     
@@ -1195,6 +1205,16 @@ async function loadGroups() {
     document.getElementById('active-groups-list').innerHTML = '<div style="padding:16px;text-align:center;">Failed to load groups.</div>';
     document.getElementById('all-groups-list').innerHTML = '<div style="padding:16px;text-align:center;">Failed to load groups.</div>';
   }
+}
+
+function copyJoinLink(groupId) {
+  const url = window.location.origin + '/join.html?groupId=' + groupId;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('✅ Join link copied to clipboard!');
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    alert('Join link (Copy manually):\n' + url);
+  });
 }
 
 async function createGroup() {
